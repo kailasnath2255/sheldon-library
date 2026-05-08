@@ -24,7 +24,7 @@
                 "conditions": [
                   {
                     "id": "c1",
-                    "leftValue": "={{ $json.body.action }}",
+                    "leftValue": "={{ $json.action }}",
                     "rightValue": "getAll",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -40,7 +40,7 @@
                 "conditions": [
                   {
                     "id": "c2",
-                    "leftValue": "={{ $json.body.action }}",
+                    "leftValue": "={{ $json.action }}",
                     "rightValue": "createStudent",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -56,7 +56,7 @@
                 "conditions": [
                   {
                     "id": "c3",
-                    "leftValue": "={{ $json.body.action }}",
+                    "leftValue": "={{ $json.action }}",
                     "rightValue": "deleteStudent",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -72,7 +72,7 @@
                 "conditions": [
                   {
                     "id": "c4",
-                    "leftValue": "={{ $json.body.action }}",
+                    "leftValue": "={{ $json.action }}",
                     "rightValue": "saveLibraryItem",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -88,7 +88,7 @@
                 "conditions": [
                   {
                     "id": "c5",
-                    "leftValue": "={{ $json.body.action }}",
+                    "leftValue": "={{ $json.action }}",
                     "rightValue": "saveAttempt",
                     "operator": { "type": "string", "operation": "equals" }
                   }
@@ -215,7 +215,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = $json.body && $json.body.payload || {};\nconst fields = {\n  name: p.name || '',\n  grade: p.grade || 1,\n  country: p.country || 'UK',\n  subject: p.subject || '',\n  avatar_color: p.avatarColor || '#B6F2D7',\n};\nif (p.parentEmail) fields.parent_email = p.parentEmail;\nreturn [{ json: fields }];"
+        "jsCode": "const p = $json && $json.payload || {};\nconst fields = {\n  name: p.name || '',\n  grade: p.grade || 1,\n  country: p.country || 'UK',\n  subject: p.subject || '',\n  avatar_color: p.avatarColor || '#B6F2D7',\n};\nif (p.parentEmail) fields.parent_email = p.parentEmail;\nreturn [{ json: fields }];"
       },
       "id": "b1000000-0000-0000-0000-000000000001",
       "name": "Build student fields",
@@ -309,7 +309,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = $json.body && $json.body.payload || {};\nreturn [{\n  json: {\n    type: p.type || 'diagnostic',\n    title: p.title || '',\n    student: p.studentId ? [p.studentId] : [],\n    payload: typeof p.payload === 'string' ? p.payload : JSON.stringify(p.payload || {}),\n  },\n}];"
+        "jsCode": "const p = $json && $json.payload || {};\nreturn [{\n  json: {\n    type: p.type || 'diagnostic',\n    title: p.title || '',\n    student: p.studentId ? [p.studentId] : [],\n    payload: typeof p.payload === 'string' ? p.payload : JSON.stringify(p.payload || {}),\n  },\n}];"
       },
       "id": "d1000000-0000-0000-0000-000000000001",
       "name": "Build library fields",
@@ -374,7 +374,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = $json.body && $json.body.payload || {};\nreturn [{\n  json: {\n    student: p.studentId ? [p.studentId] : [],\n    library_item: p.libraryItemId ? [p.libraryItemId] : [],\n    score: typeof p.score === 'number' ? p.score : 0,\n    skills_json: JSON.stringify(p.skills || {}),\n    strengths: JSON.stringify(p.strengths || []),\n    weaknesses: JSON.stringify(p.weaknesses || []),\n    recommendations: JSON.stringify(p.recommendations || []),\n    analysis_text: p.analysisText || '',\n  },\n}];"
+        "jsCode": "const p = $json && $json.payload || {};\nreturn [{\n  json: {\n    student: p.studentId ? [p.studentId] : [],\n    library_item: p.libraryItemId ? [p.libraryItemId] : [],\n    score: typeof p.score === 'number' ? p.score : 0,\n    skills_json: JSON.stringify(p.skills || {}),\n    strengths: JSON.stringify(p.strengths || []),\n    weaknesses: JSON.stringify(p.weaknesses || []),\n    recommendations: JSON.stringify(p.recommendations || []),\n    analysis_text: p.analysisText || '',\n  },\n}];"
       },
       "id": "e1000000-0000-0000-0000-000000000001",
       "name": "Build attempt fields",
@@ -446,7 +446,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { \"error\": \"Unknown action: \" + ($json.body && $json.body.action || 'undefined') } }}",
+        "responseBody": "={{ { \"error\": \"Unknown action: \" + ($json && $json.action || 'undefined') } }}",
         "statusCode": 400,
         "options": {}
       },
