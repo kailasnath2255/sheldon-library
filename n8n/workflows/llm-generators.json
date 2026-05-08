@@ -1,0 +1,387 @@
+{
+  "name": "llm-generators",
+  "nodes": [
+
+    { "parameters": { "httpMethod": "POST", "path": "diagnostic-generate", "responseMode": "responseNode", "options": {} }, "id": "wh-001", "name": "Diagnostic Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 100] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst grade = Number(p.grade || 6);\nconst prevGrade = Math.max(1, grade - 1);\nconst system = [\n  'You are Sheldon, an expert tutor and curriculum specialist for Super Sheldon EdTech. You generate diagnostic tests that identify learning gaps.',\n  '',\n  'Rules:',\n  '- The test covers the PREVIOUS year syllabus (Grade ' + prevGrade + ') to surface gaps.',\n  '- Match the region curriculum: UK National, Australia ACARA V9, India CBSE, USA Common Core, Singapore MOE, NZ NZC.',\n  '- Each question targets ONE skill. Distribute across 4-5 distinct skills.',\n  '- Difficulty mix: 30% easy, 50% medium, 20% hard.',\n  '- 4 options per question, exactly ONE correct. Wrong answers reflect common mistakes.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"questions\": [ { \"id\": \"q1\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0, \"skill\": \"Fractions\" } ] }'\n].join('\\n');\nconst user = [\n  'Generate a ' + (p.numQuestions || 10) + '-question diagnostic test for:',\n  'Student: ' + (p.name || 'Student') + ', Grade ' + grade + ', ' + (p.region || 'UK') + ', Subject: ' + (p.subject || 'Maths'),\n  'Parent goal: ' + (p.goal || 'Curriculum Alignment'),\n  '',\n  'Test the PREVIOUS year content (Grade ' + prevGrade + ').'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'diagnostic-generate' } }];"
+      },
+      "id": "bp-001", "name": "Diagnostic Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {}
+      },
+      "id": "cl-001", "name": "Diagnostic Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 60],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Diagnostic Build Prompt').first().json.system }, { role: 'user', content: $('Diagnostic Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "hf-001", "name": "Diagnostic HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 160]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed.quizId = 'q_' + Date.now();\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+      },
+      "id": "pr-001", "name": "Diagnostic Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 100]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-001", "name": "Diagnostic Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 100] },
+
+    { "parameters": { "httpMethod": "POST", "path": "diagnostic-analyze", "responseMode": "responseNode", "options": {} }, "id": "wh-002", "name": "Analyze Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 300] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst questions = Array.isArray(p.questions) ? p.questions : [];\nconst answers = Array.isArray(p.answers) ? p.answers : [];\nconst byId = Object.fromEntries(answers.map(a => [a.questionId, a.chosenIndex]));\nconst skillCounts = {};\nlet correct = 0;\nfor (const q of questions) {\n  const skill = q.skill || 'General';\n  skillCounts[skill] = skillCounts[skill] || { correct: 0, total: 0 };\n  skillCounts[skill].total += 1;\n  const c = byId[q.id];\n  if (c !== undefined && c === q.correctIndex) { correct += 1; skillCounts[skill].correct += 1; }\n}\nconst total = Math.max(1, questions.length);\nconst score = Math.round((correct / total) * 100);\nconst skills = {};\nObject.entries(skillCounts).forEach(([k, v]) => { skills[k] = Math.round((v.correct / Math.max(1, v.total)) * 100); });\nconst skillsLine = Object.entries(skills).map(([k, v]) => k + ': ' + v + '%').join(', ');\nconst system = [\n  'You are Sheldon, analysing a diagnostic test result for the parent and tutor.',\n  '',\n  'Given per-skill scores, write:',\n  '- 2-3 STRENGTHS (specific, encouraging, max 12 words each)',\n  '- 2-3 WEAKNESSES (specific but kind. Never use \"weak\" or \"bad\". Say \"needs more practice with...\")',\n  '- 3-4 RECOMMENDATIONS (concrete, time-bounded, max 15 words each)',\n  '- One ANALYSIS paragraph (3-4 sentences, warm tutor voice, references actual skills/scores)',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"strengths\": [\"...\"], \"weaknesses\": [\"...\"], \"recommendations\": [\"...\"], \"analysisText\": \"...\" }'\n].join('\\n');\nconst user = [\n  'Quiz id: ' + (p.quizId || ''),\n  'Overall score: ' + score + '% (' + correct + '/' + total + ')',\n  'Per-skill scores: ' + skillsLine\n].join('\\n');\nreturn [{ json: { system: system, user: user, _score: score, _skills: skills, _kind: 'diagnostic-analyze' } }];"
+      },
+      "id": "bp-002", "name": "Analyze Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {}
+      },
+      "id": "cl-002", "name": "Analyze Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 260],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'meta-llama/Meta-Llama-3.1-8B-Instruct', messages: [{ role: 'system', content: $('Analyze Build Prompt').first().json.system }, { role: 'user', content: $('Analyze Build Prompt').first().json.user }], max_tokens: 2000, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "hf-002", "name": "Analyze HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 360]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nconst bp = $('Analyze Build Prompt').first().json;\nreturn [{ json: { score: bp._score, skills: bp._skills, strengths: parsed.strengths || [], weaknesses: parsed.weaknesses || [], recommendations: parsed.recommendations || [], analysisText: parsed.analysisText || '', _provider: provider, _model: model } }];"
+      },
+      "id": "pr-002", "name": "Analyze Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 300]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-002", "name": "Analyze Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 300] },
+
+    { "parameters": { "httpMethod": "POST", "path": "assessment-generate", "responseMode": "responseNode", "options": {} }, "id": "wh-003", "name": "Assessment Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 500] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst topics = Array.isArray(p.topics) ? p.topics.join(', ') : (p.topics || '');\nconst subtopics = Array.isArray(p.subtopics) ? p.subtopics.join(', ') : (p.subtopics || '');\nconst system = [\n  'You are Sheldon, generating a graded assessment.',\n  '',\n  'Rules:',\n  '- Match difficulty: Easy = recall, Medium = application, Hard = analysis/synthesis.',\n  '- Distribute marks evenly unless difficulty mix demands otherwise.',\n  '- Each question has an EXPLANATION (1-2 sentences) shown after submission.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"questions\": [ { \"id\": \"q1\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 2, \"marks\": 2, \"explanation\": \"...\" } ] }'\n].join('\\n');\nconst user = [\n  'Generate a ' + (p.numQ || 10) + '-question assessment.',\n  'Grade: ' + (p.grade || 7) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Topics: ' + topics + '.',\n  'Sub-topics: ' + subtopics + '.',\n  'Difficulty: ' + (p.difficulty || 'Medium') + '.',\n  'Total marks: ' + (p.marks || 20) + '.' + (p.timed ? ' Timed: ' + (p.totalTime || 30) + ' minutes.' : '')\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'assessment-generate' } }];"
+      },
+      "id": "bp-003", "name": "Assessment Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {}
+      },
+      "id": "cl-003", "name": "Assessment Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 460],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Assessment Build Prompt').first().json.system }, { role: 'user', content: $('Assessment Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "hf-003", "name": "Assessment HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 560]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+      },
+      "id": "pr-003", "name": "Assessment Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 500]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-003", "name": "Assessment Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 500] },
+
+    { "parameters": { "httpMethod": "POST", "path": "worksheet-generate", "responseMode": "responseNode", "options": {} }, "id": "wh-004", "name": "Worksheet Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 700] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst sections = Array.isArray(p.sections) ? p.sections.join(', ') : (p.sections || 'MCQs, Fill in the blanks');\nconst system = [\n  'You are Sheldon, generating a worksheet for a student.',\n  '',\n  'Rules:',\n  '- Tone: warm, playful but precise. Like a great tutor.',\n  '- For each section requested, include 4-6 items.',\n  '- Add a brief intro: \"What you will practice today\" (1-2 sentences).',\n  '- Match the grade level. Never above.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"json\": { \"topic\": \"...\", \"intro\": \"...\", \"sections\": [ { \"name\": \"MCQs\", \"items\": [ { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"answer\": \"A\" } ] }, { \"name\": \"Fill in the blanks\", \"items\": [ { \"sentence\": \"The capital of ___ is Paris.\", \"answer\": \"France\" } ] } ] } }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Type: ' + (p.type || 'Homework') + '.',\n  'Sections: ' + sections + '.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'worksheet-generate' } }];"
+      },
+      "id": "bp-004", "name": "Worksheet Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 700]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {}
+      },
+      "id": "cl-004", "name": "Worksheet Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 660],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Worksheet Build Prompt').first().json.system }, { role: 'user', content: $('Worksheet Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "hf-004", "name": "Worksheet HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 760]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nconst out = parsed.json ? parsed : { json: parsed };\nout._provider = provider;\nout._model = model;\nreturn [{ json: out }];"
+      },
+      "id": "pr-004", "name": "Worksheet Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 700]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-004", "name": "Worksheet Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 700] },
+
+    { "parameters": { "httpMethod": "POST", "path": "lessonplan-generate", "responseMode": "responseNode", "options": {} }, "id": "wh-005", "name": "LessonPlan Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 900] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst system = [\n  'You are Sheldon, an experienced classroom teacher writing a 1:1 tutoring lesson plan.',\n  '',\n  'Rules:',\n  '- Timeline must add up to the requested duration.',\n  '- Use I-Do / We-Do / You-Do gradual release.',\n  '- Differentiation block must be specific. Not \"give harder questions\". Say WHAT.',\n  '- Homework should be 10-15 minutes.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"json\": { \"topic\": \"...\", \"objectives\": [\"...\"], \"timeline\": [ { \"time\": \"0-5 min\", \"activity\": \"...\", \"materials\": \"...\", \"notes\": \"...\" } ], \"differentiation\": { \"below\": \"...\", \"at\": \"...\", \"above\": \"...\" }, \"assessment\": \"...\", \"homework\": \"...\" } }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Class duration: ' + (p.duration || 60) + ' minutes.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'lessonplan-generate' } }];"
+      },
+      "id": "bp-005", "name": "LessonPlan Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 900]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {}
+      },
+      "id": "cl-005", "name": "LessonPlan Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 860],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'meta-llama/Meta-Llama-3.1-8B-Instruct', messages: [{ role: 'system', content: $('LessonPlan Build Prompt').first().json.system }, { role: 'user', content: $('LessonPlan Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "hf-005", "name": "LessonPlan HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 960]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nconst out = parsed.json ? parsed : { json: parsed };\nout._provider = provider;\nout._model = model;\nreturn [{ json: out }];"
+      },
+      "id": "pr-005", "name": "LessonPlan Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 900]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-005", "name": "LessonPlan Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 900] },
+
+    { "parameters": { "httpMethod": "POST", "path": "presentation-generate", "responseMode": "responseNode", "options": {} }, "id": "wh-006", "name": "Presentation Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 1100] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst system = [\n  'You are Sheldon, building a 1:1 tutoring class presentation.',\n  '',\n  'MANDATORY 10-section pedagogical flow (in this order):',\n  '1. Icebreaker / Rapport (1 slide)',\n  '2. Warm-up (1-2 slides)',\n  '3. Learning Objective (1 slide)',\n  '4. Definition (1-2 slides, type: definition)',\n  '5. Explanation with examples (3-5 slides; mix definition / image_caption / compare)',\n  '6. Activity (3 slides, type: ido_wedo_youdo)',\n  '7. Skill Task (1-2 slides)',\n  '8. Quick Assessment (5 slides, type: quiz)',\n  '9. Key Takeaways (1 slide, type: takeaway)',\n  '10. Closure HOTS (1 slide)',\n  '',\n  'Slide types: title, definition, image_caption, compare, ido_wedo_youdo, quiz, drag_sort, fill_blank, video, takeaway.',\n  'Aim for 15-20 slides total for a 60-minute class.',\n  'Each slide MUST have: type, title (or term for definition), notes (teacher script 2-4 sentences).',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"slides\": [ { \"type\": \"title\", \"title\": \"...\", \"body\": \"...\", \"notes\": \"...\" }, { \"type\": \"definition\", \"title\": \"...\", \"definition\": { \"term\": \"...\", \"meaning\": \"...\" }, \"notes\": \"...\" }, { \"type\": \"ido_wedo_youdo\", \"title\": \"...\", \"iwy\": { \"iDo\": \"...\", \"weDo\": \"...\", \"youDo\": \"...\" }, \"notes\": \"...\" }, { \"type\": \"quiz\", \"title\": \"...\", \"quiz\": { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0, \"explanation\": \"...\" }, \"notes\": \"...\" }, { \"type\": \"takeaway\", \"title\": \"...\", \"takeaway\": { \"points\": [\"...\",\"...\"] }, \"notes\": \"...\" } ] }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Class duration: ' + (p.duration || 60) + ' minutes.',\n  'Difficulty: ' + (p.difficulty || 'Medium') + '.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'presentation-generate' } }];"
+      },
+      "id": "bp-006", "name": "Presentation Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 1100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 16000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": { "timeout": 90000 }
+      },
+      "id": "cl-006", "name": "Presentation Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 1060],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'mistralai/Mixtral-8x7B-Instruct-v0.1', messages: [{ role: 'system', content: $('Presentation Build Prompt').first().json.system }, { role: 'user', content: $('Presentation Build Prompt').first().json.user }], max_tokens: 6000, temperature: 0.3 }) }}",
+        "options": { "timeout": 90000 }
+      },
+      "id": "hf-006", "name": "Presentation HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 1160]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+      },
+      "id": "pr-006", "name": "Presentation Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 1100]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-006", "name": "Presentation Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 1100] },
+
+    { "parameters": { "httpMethod": "POST", "path": "game-generate", "responseMode": "responseNode", "options": {} }, "id": "wh-007", "name": "Game Webhook", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 1300] },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json.body) || {};\nconst system = [\n  'You are Sheldon, designing a quick interactive learning game.',\n  '',\n  'Game styles and JSON shapes (pick the one matching the requested style):',\n  'sort: { \"gameType\": \"sort\", \"payload\": { \"items\": [\"...\"], \"buckets\": [ { \"name\": \"...\", \"correctItems\": [\"...\"] } ] } }',\n  'match: { \"gameType\": \"match\", \"payload\": { \"pairs\": [ { \"left\": \"...\", \"right\": \"...\" } ] } }',\n  'sequence: { \"gameType\": \"sequence\", \"payload\": { \"items\": [\"...\"], \"correctOrder\": [0,1,2,3] } }',\n  'fill-blank: { \"gameType\": \"fill-blank\", \"payload\": { \"sentence\": \"...\", \"blanks\": [\"...\",\"...\"] } }',\n  'quiz: { \"gameType\": \"quiz\", \"payload\": { \"questions\": [ { \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0 } ] } }',\n  '',\n  'Rules:',\n  '- 5-8 items / 4-6 questions per game.',\n  '- Match grade level.',\n  '',\n  'Return ONLY valid JSON. No prose before or after.'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Game style: ' + (p.gameStyle || 'sort') + '.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'game-generate' } }];"
+      },
+      "id": "bp-007", "name": "Game Build Prompt", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [400, 1300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "anthropic-version", "value": "2023-06-01" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
+        "options": {}
+      },
+      "id": "cl-007", "name": "Game Claude", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 1260],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Game Build Prompt').first().json.system }, { role: 'user', content: $('Game Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
+        "options": {}
+      },
+      "id": "hf-007", "name": "Game HF", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [600, 1360]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+      },
+      "id": "pr-007", "name": "Game Parse", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [800, 1300]
+    },
+    { "parameters": { "respondWith": "json", "responseBody": "={{ $json }}", "options": {} }, "id": "rs-007", "name": "Game Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1000, 1300] }
+  ],
+  "connections": {
+    "Diagnostic Webhook":     { "main": [[{ "node": "Diagnostic Build Prompt", "type": "main", "index": 0 }]] },
+    "Diagnostic Build Prompt":{ "main": [[{ "node": "Diagnostic Claude",       "type": "main", "index": 0 }]] },
+    "Diagnostic Claude":      { "main": [ [{ "node": "Diagnostic Parse", "type": "main", "index": 0 }], [{ "node": "Diagnostic HF", "type": "main", "index": 0 }] ] },
+    "Diagnostic HF":          { "main": [[{ "node": "Diagnostic Parse",        "type": "main", "index": 0 }]] },
+    "Diagnostic Parse":       { "main": [[{ "node": "Diagnostic Respond",      "type": "main", "index": 0 }]] },
+
+    "Analyze Webhook":        { "main": [[{ "node": "Analyze Build Prompt",    "type": "main", "index": 0 }]] },
+    "Analyze Build Prompt":   { "main": [[{ "node": "Analyze Claude",          "type": "main", "index": 0 }]] },
+    "Analyze Claude":         { "main": [ [{ "node": "Analyze Parse", "type": "main", "index": 0 }], [{ "node": "Analyze HF", "type": "main", "index": 0 }] ] },
+    "Analyze HF":             { "main": [[{ "node": "Analyze Parse",           "type": "main", "index": 0 }]] },
+    "Analyze Parse":          { "main": [[{ "node": "Analyze Respond",         "type": "main", "index": 0 }]] },
+
+    "Assessment Webhook":     { "main": [[{ "node": "Assessment Build Prompt", "type": "main", "index": 0 }]] },
+    "Assessment Build Prompt":{ "main": [[{ "node": "Assessment Claude",       "type": "main", "index": 0 }]] },
+    "Assessment Claude":      { "main": [ [{ "node": "Assessment Parse", "type": "main", "index": 0 }], [{ "node": "Assessment HF", "type": "main", "index": 0 }] ] },
+    "Assessment HF":          { "main": [[{ "node": "Assessment Parse",        "type": "main", "index": 0 }]] },
+    "Assessment Parse":       { "main": [[{ "node": "Assessment Respond",      "type": "main", "index": 0 }]] },
+
+    "Worksheet Webhook":      { "main": [[{ "node": "Worksheet Build Prompt",  "type": "main", "index": 0 }]] },
+    "Worksheet Build Prompt": { "main": [[{ "node": "Worksheet Claude",        "type": "main", "index": 0 }]] },
+    "Worksheet Claude":       { "main": [ [{ "node": "Worksheet Parse", "type": "main", "index": 0 }], [{ "node": "Worksheet HF", "type": "main", "index": 0 }] ] },
+    "Worksheet HF":           { "main": [[{ "node": "Worksheet Parse",         "type": "main", "index": 0 }]] },
+    "Worksheet Parse":        { "main": [[{ "node": "Worksheet Respond",       "type": "main", "index": 0 }]] },
+
+    "LessonPlan Webhook":     { "main": [[{ "node": "LessonPlan Build Prompt", "type": "main", "index": 0 }]] },
+    "LessonPlan Build Prompt":{ "main": [[{ "node": "LessonPlan Claude",       "type": "main", "index": 0 }]] },
+    "LessonPlan Claude":      { "main": [ [{ "node": "LessonPlan Parse", "type": "main", "index": 0 }], [{ "node": "LessonPlan HF", "type": "main", "index": 0 }] ] },
+    "LessonPlan HF":          { "main": [[{ "node": "LessonPlan Parse",        "type": "main", "index": 0 }]] },
+    "LessonPlan Parse":       { "main": [[{ "node": "LessonPlan Respond",      "type": "main", "index": 0 }]] },
+
+    "Presentation Webhook":     { "main": [[{ "node": "Presentation Build Prompt", "type": "main", "index": 0 }]] },
+    "Presentation Build Prompt":{ "main": [[{ "node": "Presentation Claude",       "type": "main", "index": 0 }]] },
+    "Presentation Claude":      { "main": [ [{ "node": "Presentation Parse", "type": "main", "index": 0 }], [{ "node": "Presentation HF", "type": "main", "index": 0 }] ] },
+    "Presentation HF":          { "main": [[{ "node": "Presentation Parse",        "type": "main", "index": 0 }]] },
+    "Presentation Parse":       { "main": [[{ "node": "Presentation Respond",      "type": "main", "index": 0 }]] },
+
+    "Game Webhook":           { "main": [[{ "node": "Game Build Prompt",       "type": "main", "index": 0 }]] },
+    "Game Build Prompt":      { "main": [[{ "node": "Game Claude",             "type": "main", "index": 0 }]] },
+    "Game Claude":            { "main": [ [{ "node": "Game Parse", "type": "main", "index": 0 }], [{ "node": "Game HF", "type": "main", "index": 0 }] ] },
+    "Game HF":                { "main": [[{ "node": "Game Parse",              "type": "main", "index": 0 }]] },
+    "Game Parse":             { "main": [[{ "node": "Game Respond",            "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": []
+}

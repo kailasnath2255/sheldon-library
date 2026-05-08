@@ -1,0 +1,498 @@
+{
+  "name": "sync-state",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sync-state",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1000000-0000-0000-0000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 480]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "id": "c1",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "getAll",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "getAll"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "id": "c2",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "createStudent",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "createStudent"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "id": "c3",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "deleteStudent",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "deleteStudent"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "id": "c4",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "saveLibraryItem",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "saveLibraryItem"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
+                "conditions": [
+                  {
+                    "id": "c5",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "saveAttempt",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "saveAttempt"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2000000-0000-0000-0000-000000000002",
+      "name": "Action Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [460, 480]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tblJ01dBWOiV1cnT6", "mode": "id" },
+        "options": {}
+      },
+      "id": "a3000000-0000-0000-0000-000000000003",
+      "name": "Students List",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [700, 100]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst students = items.map(it => {\n  const f = it.json.fields || it.json || {};\n  return {\n    id: it.json.id,\n    name: f.name || '',\n    grade: f.grade || 1,\n    country: f.country || 'UK',\n    subject: f.subject || '',\n    parentEmail: f.parent_email || undefined,\n    avatarColor: f.avatar_color || '#B6F2D7',\n  };\n});\nreturn [{ json: { _students: students } }];"
+      },
+      "id": "a3100000-0000-0000-0000-000000000031",
+      "name": "Stash students",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 100]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tblibktOQqFLFfwot", "mode": "id" },
+        "options": {}
+      },
+      "id": "a4000000-0000-0000-0000-000000000004",
+      "name": "LibraryItems List",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1060, 100]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst safeParse = (s, fb) => { if (!s) return fb; try { return JSON.parse(s); } catch { return fb; } };\nconst libraryItems = items.map(it => {\n  const f = it.json.fields || it.json || {};\n  return {\n    id: it.json.id,\n    type: f.type || 'diagnostic',\n    title: f.title || '',\n    studentId: (f.student || [])[0] || '',\n    payload: safeParse(f.payload, {}),\n    createdAt: f.created_at || it.json.createdTime,\n  };\n});\nconst prev = $('Stash students').first().json;\nreturn [{ json: { _students: prev._students, _libraryItems: libraryItems } }];"
+      },
+      "id": "a4100000-0000-0000-0000-000000000041",
+      "name": "Stash library",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 100]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tbl83UCCmYxy7r7Ey", "mode": "id" },
+        "options": {}
+      },
+      "id": "a5000000-0000-0000-0000-000000000005",
+      "name": "QuizAttempts List",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [1420, 100]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nconst safeParse = (s, fb) => { if (!s) return fb; try { return JSON.parse(s); } catch { return fb; } };\nconst attempts = items.map(it => {\n  const f = it.json.fields || it.json || {};\n  return {\n    id: it.json.id,\n    studentId: (f.student || [])[0] || '',\n    libraryItemId: (f.library_item || [])[0] || '',\n    score: f.score || 0,\n    skills: safeParse(f.skills_json, {}),\n    strengths: safeParse(f.strengths, []),\n    weaknesses: safeParse(f.weaknesses, []),\n    recommendations: safeParse(f.recommendations, []),\n    analysisText: f.analysis_text,\n    createdAt: f.created_at || it.json.createdTime,\n  };\n});\nconst prev = $('Stash library').first().json;\nreturn [{ json: {\n  students: prev._students,\n  libraryItems: prev._libraryItems,\n  attempts,\n} }];"
+      },
+      "id": "a6000000-0000-0000-0000-000000000006",
+      "name": "Map getAll",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 100]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "a7000000-0000-0000-0000-000000000007",
+      "name": "Respond getAll",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1800, 100]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = $json.body && $json.body.payload || {};\nconst fields = {\n  name: p.name || '',\n  grade: p.grade || 1,\n  country: p.country || 'UK',\n  subject: p.subject || '',\n  avatar_color: p.avatarColor || '#B6F2D7',\n};\nif (p.parentEmail) fields.parent_email = p.parentEmail;\nreturn [{ json: fields }];"
+      },
+      "id": "b1000000-0000-0000-0000-000000000001",
+      "name": "Build student fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 460]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tblJ01dBWOiV1cnT6", "mode": "id" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $json.name }}",
+            "grade": "={{ $json.grade }}",
+            "country": "={{ $json.country }}",
+            "subject": "={{ $json.subject }}",
+            "parent_email": "={{ $json.parent_email }}",
+            "avatar_color": "={{ $json.avatar_color }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "name", "displayName": "name", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "grade", "displayName": "grade", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "number", "display": true, "removed": false },
+            { "id": "country", "displayName": "country", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "subject", "displayName": "subject", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "parent_email", "displayName": "parent_email", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "avatar_color", "displayName": "avatar_color", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "b2000000-0000-0000-0000-000000000002",
+      "name": "Create Student",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [940, 460]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const it = $input.first();\nconst f = it.json.fields || it.json || {};\nreturn [{\n  json: {\n    id: it.json.id,\n    name: f.name || '',\n    grade: f.grade || 1,\n    country: f.country || 'UK',\n    subject: f.subject || '',\n    parentEmail: f.parent_email || undefined,\n    avatarColor: f.avatar_color || '#B6F2D7',\n  },\n}];"
+      },
+      "id": "b3000000-0000-0000-0000-000000000003",
+      "name": "Map student response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 460]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "b4000000-0000-0000-0000-000000000004",
+      "name": "Respond createStudent",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1420, 460]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tblJ01dBWOiV1cnT6", "mode": "id" },
+        "id": "={{ $json.body.payload }}"
+      },
+      "id": "c1000000-0000-0000-0000-000000000001",
+      "name": "Delete Student",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [700, 620]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true } }}",
+        "options": {}
+      },
+      "id": "c2000000-0000-0000-0000-000000000002",
+      "name": "Respond deleteStudent",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [940, 620]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = $json.body && $json.body.payload || {};\nreturn [{\n  json: {\n    type: p.type || 'diagnostic',\n    title: p.title || '',\n    student: p.studentId ? [p.studentId] : [],\n    payload: typeof p.payload === 'string' ? p.payload : JSON.stringify(p.payload || {}),\n  },\n}];"
+      },
+      "id": "d1000000-0000-0000-0000-000000000001",
+      "name": "Build library fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 780]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tblibktOQqFLFfwot", "mode": "id" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "type": "={{ $json.type }}",
+            "title": "={{ $json.title }}",
+            "student": "={{ $json.student }}",
+            "payload": "={{ $json.payload }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "type", "displayName": "type", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "title", "displayName": "title", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "student", "displayName": "student", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "array", "display": true, "removed": false },
+            { "id": "payload", "displayName": "payload", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "d2000000-0000-0000-0000-000000000002",
+      "name": "Create LibraryItem",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [940, 780]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const it = $input.first();\nconst f = it.json.fields || it.json || {};\nlet payload = f.payload;\ntry { payload = JSON.parse(payload); } catch {}\nreturn [{\n  json: {\n    id: it.json.id,\n    type: f.type,\n    title: f.title || '',\n    studentId: (f.student || [])[0] || '',\n    payload,\n    createdAt: f.created_at || it.json.createdTime,\n  },\n}];"
+      },
+      "id": "d3000000-0000-0000-0000-000000000003",
+      "name": "Map library response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 780]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d4000000-0000-0000-0000-000000000004",
+      "name": "Respond saveLibraryItem",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1420, 780]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = $json.body && $json.body.payload || {};\nreturn [{\n  json: {\n    student: p.studentId ? [p.studentId] : [],\n    library_item: p.libraryItemId ? [p.libraryItemId] : [],\n    score: typeof p.score === 'number' ? p.score : 0,\n    skills_json: JSON.stringify(p.skills || {}),\n    strengths: JSON.stringify(p.strengths || []),\n    weaknesses: JSON.stringify(p.weaknesses || []),\n    recommendations: JSON.stringify(p.recommendations || []),\n    analysis_text: p.analysisText || '',\n  },\n}];"
+      },
+      "id": "e1000000-0000-0000-0000-000000000001",
+      "name": "Build attempt fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 940]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": { "__rl": true, "value": "appZQ5D66jzxmfwOm", "mode": "id" },
+        "table": { "__rl": true, "value": "tbl83UCCmYxy7r7Ey", "mode": "id" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "student": "={{ $json.student }}",
+            "library_item": "={{ $json.library_item }}",
+            "score": "={{ $json.score }}",
+            "skills_json": "={{ $json.skills_json }}",
+            "strengths": "={{ $json.strengths }}",
+            "weaknesses": "={{ $json.weaknesses }}",
+            "recommendations": "={{ $json.recommendations }}",
+            "analysis_text": "={{ $json.analysis_text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "student", "displayName": "student", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "array", "display": true, "removed": false },
+            { "id": "library_item", "displayName": "library_item", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "array", "display": true, "removed": false },
+            { "id": "score", "displayName": "score", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "number", "display": true, "removed": false },
+            { "id": "skills_json", "displayName": "skills_json", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "strengths", "displayName": "strengths", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "weaknesses", "displayName": "weaknesses", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "recommendations", "displayName": "recommendations", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false },
+            { "id": "analysis_text", "displayName": "analysis_text", "required": false, "defaultMatch": false, "canBeUsedToMatch": true, "type": "string", "display": true, "removed": false }
+          ]
+        },
+        "options": { "typecast": true }
+      },
+      "id": "e2000000-0000-0000-0000-000000000002",
+      "name": "Create QuizAttempt",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [940, 940]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const it = $input.first();\nconst f = it.json.fields || it.json || {};\nconst safeParse = (s, fb) => { try { return JSON.parse(s); } catch { return fb; } };\nreturn [{\n  json: {\n    id: it.json.id,\n    studentId: (f.student || [])[0] || '',\n    libraryItemId: (f.library_item || [])[0] || '',\n    score: f.score || 0,\n    skills: safeParse(f.skills_json, {}),\n    strengths: safeParse(f.strengths, []),\n    weaknesses: safeParse(f.weaknesses, []),\n    recommendations: safeParse(f.recommendations, []),\n    analysisText: f.analysis_text,\n    createdAt: f.created_at || it.json.createdTime,\n  },\n}];"
+      },
+      "id": "e3000000-0000-0000-0000-000000000003",
+      "name": "Map attempt response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 940]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "e4000000-0000-0000-0000-000000000004",
+      "name": "Respond saveAttempt",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1420, 940]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "Action Switch", "type": "main", "index": 0 }]
+      ]
+    },
+    "Action Switch": {
+      "main": [
+        [{ "node": "Students List", "type": "main", "index": 0 }],
+        [{ "node": "Build student fields", "type": "main", "index": 0 }],
+        [{ "node": "Delete Student", "type": "main", "index": 0 }],
+        [{ "node": "Build library fields", "type": "main", "index": 0 }],
+        [{ "node": "Build attempt fields", "type": "main", "index": 0 }]
+      ]
+    },
+    "Students List": {
+      "main": [[{ "node": "Stash students", "type": "main", "index": 0 }]]
+    },
+    "Stash students": {
+      "main": [[{ "node": "LibraryItems List", "type": "main", "index": 0 }]]
+    },
+    "LibraryItems List": {
+      "main": [[{ "node": "Stash library", "type": "main", "index": 0 }]]
+    },
+    "Stash library": {
+      "main": [[{ "node": "QuizAttempts List", "type": "main", "index": 0 }]]
+    },
+    "QuizAttempts List": {
+      "main": [[{ "node": "Map getAll", "type": "main", "index": 0 }]]
+    },
+    "Map getAll": {
+      "main": [[{ "node": "Respond getAll", "type": "main", "index": 0 }]]
+    },
+    "Build student fields": {
+      "main": [[{ "node": "Create Student", "type": "main", "index": 0 }]]
+    },
+    "Create Student": {
+      "main": [[{ "node": "Map student response", "type": "main", "index": 0 }]]
+    },
+    "Map student response": {
+      "main": [[{ "node": "Respond createStudent", "type": "main", "index": 0 }]]
+    },
+    "Delete Student": {
+      "main": [[{ "node": "Respond deleteStudent", "type": "main", "index": 0 }]]
+    },
+    "Build library fields": {
+      "main": [[{ "node": "Create LibraryItem", "type": "main", "index": 0 }]]
+    },
+    "Create LibraryItem": {
+      "main": [[{ "node": "Map library response", "type": "main", "index": 0 }]]
+    },
+    "Map library response": {
+      "main": [[{ "node": "Respond saveLibraryItem", "type": "main", "index": 0 }]]
+    },
+    "Build attempt fields": {
+      "main": [[{ "node": "Create QuizAttempt", "type": "main", "index": 0 }]]
+    },
+    "Create QuizAttempt": {
+      "main": [[{ "node": "Map attempt response", "type": "main", "index": 0 }]]
+    },
+    "Map attempt response": {
+      "main": [[{ "node": "Respond saveAttempt", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "tags": []
+}
