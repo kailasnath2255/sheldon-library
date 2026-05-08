@@ -97,22 +97,6 @@
               },
               "renameOutput": true,
               "outputKey": "saveAttempt"
-            },
-            {
-              "conditions": {
-                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose" },
-                "conditions": [
-                  {
-                    "id": "default",
-                    "leftValue": "={{ true }}",
-                    "rightValue": "true",
-                    "operator": { "type": "boolean", "operation": "equals" }
-                  }
-                ],
-                "combinator": "and"
-              },
-              "renameOutput": true,
-              "outputKey": "default"
             }
           ]
         },
@@ -442,19 +426,6 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [1420, 940]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { \"error\": \"Unknown action: \" + ($json && $json.action || 'undefined') } }}",
-        "statusCode": 400,
-        "options": {}
-      },
-      "id": "error-handler",
-      "name": "Respond default error",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [700, 1100]
     }
   ],
   "connections": {
@@ -469,8 +440,7 @@
         [{ "node": "Build student fields", "type": "main", "index": 0 }],
         [{ "node": "Delete Student", "type": "main", "index": 0 }],
         [{ "node": "Build library fields", "type": "main", "index": 0 }],
-        [{ "node": "Build attempt fields", "type": "main", "index": 0 }],
-        [{ "node": "Respond default error", "type": "main", "index": 0 }]
+        [{ "node": "Build attempt fields", "type": "main", "index": 0 }]
       ]
     },
     "Students List": {
