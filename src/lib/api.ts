@@ -67,7 +67,15 @@ async function callWebhook<T>(
       const text = await res.text().catch(() => "");
       throw new Error(`${path} failed (${res.status}): ${text.slice(0, 200)}`);
     }
-    return (await res.json()) as T;
+    const text = await res.text();
+    if (!text) {
+      throw new Error(`${path} returned empty response (200)`);
+    }
+    try {
+      return JSON.parse(text) as T;
+    } catch (e) {
+      throw new Error(`${path} returned invalid JSON: ${text.slice(0, 200)}`);
+    }
   } finally {
     clearTimeout(timeout);
   }
