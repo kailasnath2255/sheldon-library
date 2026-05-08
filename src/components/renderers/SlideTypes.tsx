@@ -5,7 +5,7 @@ import OwlMascot from "@/components/shared/OwlMascot";
 import type { Slide } from "@/lib/types";
 
 const sectionStyle =
-  "rounded-3xl w-full h-full flex flex-col p-8 md:p-12 overflow-hidden";
+  "rounded-3xl w-full h-full flex flex-col p-4 sm:p-8 md:p-12 overflow-auto scrollbar-thin";
 
 export const TitleSlide = ({ slide }: { slide: Slide }) => (
   <div
@@ -14,11 +14,11 @@ export const TitleSlide = ({ slide }: { slide: Slide }) => (
     <div className="flex-1 flex items-center">
       <div className="flex-1">
         <p className="pill bg-white/20 text-white">Title</p>
-        <h1 className="font-display text-5xl md:text-7xl font-extrabold leading-[1.05] mt-4">
+        <h1 className="font-display text-3xl sm:text-5xl md:text-7xl font-extrabold leading-[1.05] mt-4">
           {slide.title}
         </h1>
         {slide.body && (
-          <p className="text-white/80 text-lg mt-4 max-w-xl">{slide.body}</p>
+          <p className="text-white/80 text-base sm:text-lg mt-4 max-w-xl">{slide.body}</p>
         )}
       </div>
       <div className="hidden md:block">
@@ -31,7 +31,7 @@ export const TitleSlide = ({ slide }: { slide: Slide }) => (
 export const DefinitionSlide = ({ slide }: { slide: Slide }) => (
   <div className={`${sectionStyle} bg-card-lessonplan text-navy`}>
     <p className="pill bg-purple/15 text-purple">Definition</p>
-    <h2 className="font-display text-4xl md:text-5xl font-extrabold mt-4">
+    <h2 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold mt-4">
       {slide.title}
     </h2>
     <div className="mt-8 bg-white/70 rounded-2xl p-6 max-w-2xl">
@@ -48,7 +48,7 @@ export const DefinitionSlide = ({ slide }: { slide: Slide }) => (
 export const ImageCaptionSlide = ({ slide }: { slide: Slide }) => (
   <div className={`${sectionStyle} bg-card-presentation text-navy`}>
     <p className="pill bg-purple/15 text-purple">Visual</p>
-    <h2 className="font-display text-3xl md:text-4xl font-extrabold mt-3">
+    <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-extrabold mt-3">
       {slide.title}
     </h2>
     <div className="flex-1 flex items-center justify-center">
@@ -63,7 +63,7 @@ export const ImageCaptionSlide = ({ slide }: { slide: Slide }) => (
 export const CompareSlide = ({ slide }: { slide: Slide }) => (
   <div className={`${sectionStyle} bg-card-diagnostic text-navy`}>
     <p className="pill bg-teal/15 text-teal">Compare</p>
-    <h2 className="font-display text-3xl md:text-4xl font-extrabold mt-3">
+    <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-extrabold mt-3">
       {slide.title}
     </h2>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 flex-1">
@@ -99,7 +99,7 @@ export const IDoWeDoYouDoSlide = ({ slide }: { slide: Slide }) => {
   return (
     <div className={`${sectionStyle} bg-card-games text-navy`}>
       <p className="pill bg-purple/15 text-purple">Activity · I Do · We Do · You Do</p>
-      <h2 className="font-display text-3xl md:text-4xl font-extrabold mt-3">
+      <h2 className="font-display text-xl sm:text-3xl md:text-4xl font-extrabold mt-3">
         {slide.title}
       </h2>
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">

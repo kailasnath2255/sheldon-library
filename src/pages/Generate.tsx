@@ -33,6 +33,8 @@ import PresentationForm, {
   type PresentationFormValues,
 } from "@/components/generators/PresentationForm";
 import GameForm, { type GameFormValues } from "@/components/generators/GameForm";
+import ModelSelector from "@/components/generators/ModelSelector";
+import { DEFAULT_MODEL_ID } from "@/lib/models";
 
 import QuizRenderer from "@/components/renderers/QuizRenderer";
 import WorksheetRenderer from "@/components/renderers/WorksheetRenderer";
@@ -129,6 +131,7 @@ export default function Generate() {
   const [grade, setGrade] = useState<number>(active?.grade ?? 5);
   const [country, setCountry] = useState<Country>(active?.country ?? "UK");
   const [subject, setSubject] = useState<string>(active?.subject ?? "Maths");
+  const [model, setModel] = useState<string>(DEFAULT_MODEL_ID);
 
   useEffect(() => {
     if (active) {
@@ -228,6 +231,7 @@ export default function Generate() {
             subject,
             goal: diagnosticForm.goal,
             numQuestions: diagnosticForm.numQuestions,
+            model: model || undefined,
           });
           result = { type: "diagnostic", data };
           title = `Diagnostic · Grade ${grade - 1} ${subject} review`;
@@ -244,6 +248,7 @@ export default function Generate() {
             difficulty: assessmentForm.difficulty,
             grade,
             subject,
+            model: model || undefined,
           });
           result = { type: "assessment", data };
           title = `Assessment · ${assessmentForm.topics.join(", ") || subject}`;
@@ -257,6 +262,7 @@ export default function Generate() {
             sections: worksheetForm.sections,
             grade,
             subject,
+            model: model || undefined,
           });
           result = { type: "worksheet", data };
           title = `Worksheet · ${worksheetForm.topic}`;
@@ -269,6 +275,7 @@ export default function Generate() {
             duration: lessonPlanForm.duration,
             grade,
             subject,
+            model: model || undefined,
           });
           result = { type: "lessonplan", data };
           title = `Lesson Plan · ${lessonPlanForm.topic} (${lessonPlanForm.duration}m)`;
@@ -282,6 +289,7 @@ export default function Generate() {
             difficulty: presentationForm.difficulty,
             grade,
             subject,
+            model: model || undefined,
           });
           result = { type: "presentation", data };
           title = `Presentation · ${presentationForm.topic}`;
@@ -294,6 +302,7 @@ export default function Generate() {
             gameStyle: gameForm.gameStyle,
             grade,
             subject,
+            model: model || undefined,
           });
           result = { type: "games", data };
           title = `Game · ${gameForm.topic} (${gameForm.gameStyle})`;
@@ -473,6 +482,9 @@ export default function Generate() {
               </div>
             </div>
           </section>
+
+          {/* Model picker */}
+          <ModelSelector value={model} onChange={setModel} />
 
           {/* Tool picker */}
           <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">

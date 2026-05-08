@@ -158,7 +158,7 @@ export default function PresentationRenderer({
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 260, damping: 30 }}
-              className="absolute top-3 right-3 bottom-16 w-72 bg-navy text-white rounded-2xl shadow-xl p-4 overflow-y-auto scrollbar-thin"
+              className="absolute top-3 right-3 bottom-16 w-[calc(100%-1.5rem)] sm:w-72 bg-navy text-white rounded-2xl shadow-xl p-4 overflow-y-auto scrollbar-thin"
             >
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-display font-bold">Teacher notes</h4>

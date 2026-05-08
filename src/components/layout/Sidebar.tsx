@@ -51,9 +51,9 @@ export default function Sidebar() {
 
       <div className="px-5 py-4 border-t border-navy/5">
         <p className="text-[11px] uppercase tracking-[0.08em] font-bold text-navy/50 mb-1">
-          Powered by
+          AI Engine
         </p>
-        <p className="text-sm font-semibold text-navy">Claude Sonnet 4.5</p>
+        <p className="text-sm font-semibold text-navy">Adaptive · Pick at gen time</p>
         <p className="text-xs text-navy/50 mt-2">v2.0 · Sheldon Labs</p>
       </div>
     </aside>

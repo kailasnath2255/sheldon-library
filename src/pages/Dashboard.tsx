@@ -117,9 +117,9 @@ export default function Dashboard() {
           hrefLabel="Open library"
         />
         <StatCard
-          label="AI Model"
-          value="Sonnet 4.5"
-          hint="Pedagogy-aware generation"
+          label="AI Engine"
+          value="Adaptive"
+          hint="Pick a model at generation time"
           icon={Brain}
           accent="gold"
         />
