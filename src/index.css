@@ -102,6 +102,70 @@
   }
 }
 
+@layer components {
+  /* Markdown rendering — matches SS design tokens */
+  .ss-prose h1 {
+    @apply font-display font-extrabold text-3xl md:text-4xl text-ss-ink-900 dark:text-white mt-2 mb-4 leading-tight;
+  }
+  .ss-prose h2 {
+    @apply font-display font-extrabold text-2xl md:text-3xl text-ss-ink-900 dark:text-white mt-8 mb-3 leading-tight;
+  }
+  .ss-prose h3 {
+    @apply font-display font-bold text-xl md:text-2xl text-ss-ink-900 dark:text-white mt-6 mb-2;
+  }
+  .ss-prose h4 {
+    @apply font-display font-bold text-lg text-ss-ink-900 dark:text-white mt-4 mb-2;
+  }
+  .ss-prose p {
+    @apply text-base text-ss-ink-700 dark:text-ss-ink-200 leading-relaxed mb-4;
+  }
+  .ss-prose ul {
+    @apply list-disc pl-6 mb-4 space-y-1.5;
+  }
+  .ss-prose ol {
+    @apply list-decimal pl-6 mb-4 space-y-1.5;
+  }
+  .ss-prose li {
+    @apply text-ss-ink-700 dark:text-ss-ink-200 leading-relaxed;
+  }
+  .ss-prose strong {
+    @apply font-bold text-ss-ink-900 dark:text-white;
+  }
+  .ss-prose em {
+    @apply italic text-ss-ink-700 dark:text-ss-ink-200;
+  }
+  .ss-prose a {
+    @apply text-ss-orange-500 font-semibold hover:underline;
+  }
+  .ss-prose blockquote {
+    @apply border-l-4 border-ss-orange-500 bg-soft-cream dark:bg-deep-cream/40 pl-5 py-2 italic my-4 rounded-r-xl;
+  }
+  .ss-prose code {
+    @apply bg-soft-cream dark:bg-deep-cream/40 px-1.5 py-0.5 rounded text-sm font-mono text-ss-orange-700 dark:text-ss-orange-300;
+  }
+  .ss-prose pre {
+    @apply bg-ss-ink-900 text-ss-ink-100 rounded-2xl p-4 overflow-x-auto my-4 text-sm leading-relaxed;
+  }
+  .ss-prose pre code {
+    @apply bg-transparent text-ss-ink-100 p-0;
+  }
+  .ss-prose table {
+    @apply w-full border-collapse my-4 text-sm;
+  }
+  .ss-prose th {
+    @apply bg-soft-cream dark:bg-deep-cream/40 text-left font-bold text-ss-ink-900 dark:text-white px-4 py-2 border-2 border-ss-ink-900 dark:border-white/50;
+  }
+  .ss-prose td {
+    @apply px-4 py-2 border-2 border-ss-ink-900 dark:border-white/50 text-ss-ink-700 dark:text-ss-ink-200;
+  }
+  .ss-prose hr {
+    @apply border-0 border-t-2 border-ss-ink-900 dark:border-white/50 my-8;
+  }
+  .ss-prose img {
+    @apply rounded-2xl border-2 border-ss-ink-900 dark:border-white/50 my-4 shadow-soft;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

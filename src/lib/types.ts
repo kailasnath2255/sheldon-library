@@ -163,6 +163,23 @@ export type GamePayload =
   | { gameType: "fill-blank"; payload: { sentence: string; blanks: string[] } }
   | { gameType: "quiz"; payload: { questions: { text: string; options: string[]; correctIndex: number }[] } };
 
+// ── Generic content shapes (new format-aware payloads from upgraded prompts)
+export type HTMLContent = {
+  format: "html";
+  html: string;
+  _provider?: string;
+  _model?: string;
+};
+
+export type MarkdownContent = {
+  format: "markdown";
+  markdown: string;
+  _provider?: string;
+  _model?: string;
+};
+
+export type FlexibleResponse = HTMLContent | MarkdownContent;
+
 export type SyncAction =
   | "getAll"
   | "createStudent"

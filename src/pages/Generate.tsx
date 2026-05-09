@@ -41,6 +41,8 @@ import WorksheetRenderer from "@/components/renderers/WorksheetRenderer";
 import LessonPlanRenderer from "@/components/renderers/LessonPlanRenderer";
 import PresentationRenderer from "@/components/renderers/PresentationRenderer";
 import GameRenderer from "@/components/renderers/GameRenderer";
+import HTMLContentRenderer from "@/components/renderers/HTMLContentRenderer";
+import MarkdownContentRenderer from "@/components/renderers/MarkdownContentRenderer";
 
 import {
   analyzeDiagnostic,
@@ -57,6 +59,7 @@ import type {
   AssessmentResponse,
   Country,
   DiagnosticResponse,
+  FlexibleResponse,
   GamePayload,
   LessonPlanResponse,
   LibraryItemType,
@@ -112,12 +115,12 @@ const TOOL_INFO: Record<
 const COUNTRIES: Country[] = ["UK", "Australia", "India", "USA", "Singapore", "NZ"];
 
 type GenerationOutput =
-  | { type: "diagnostic"; data: DiagnosticResponse }
-  | { type: "assessment"; data: AssessmentResponse }
-  | { type: "worksheet"; data: WorksheetResponse }
-  | { type: "lessonplan"; data: LessonPlanResponse }
-  | { type: "presentation"; data: PresentationResponse }
-  | { type: "games"; data: GamePayload };
+  | { type: "diagnostic"; data: DiagnosticResponse | FlexibleResponse }
+  | { type: "assessment"; data: AssessmentResponse | FlexibleResponse }
+  | { type: "worksheet"; data: WorksheetResponse | FlexibleResponse }
+  | { type: "lessonplan"; data: LessonPlanResponse | FlexibleResponse }
+  | { type: "presentation"; data: PresentationResponse | FlexibleResponse }
+  | { type: "games"; data: GamePayload | FlexibleResponse };
 
 export default function Generate() {
   const [params, setParams] = useSearchParams();
@@ -379,12 +382,25 @@ export default function Generate() {
       toast.success("Saved to Progress.");
     };
 
+    // Flexible format dispatch — if AI returned HTML or Markdown, render via universal renderers.
+    const data = output.data as any;
+    if (data && typeof data === "object") {
+      if (data.format === "html" && typeof data.html === "string") {
+        return <HTMLContentRenderer html={data.html} filename={`${output.type}.html`} />;
+      }
+      if (data.format === "markdown" && typeof data.markdown === "string") {
+        return <MarkdownContentRenderer markdown={data.markdown} title={output.type} />;
+      }
+    }
+
+    // After flexible-format check, output.data is the structured shape.
+    const structured = output.data as any;
     switch (output.type) {
       case "diagnostic":
         return (
           <QuizRenderer
             mode="diagnostic"
-            questions={output.data.questions}
+            questions={structured.questions}
             onAnalyze={handleAnalyze}
             onAttemptSaved={onAttemptSaved}
           />
@@ -393,27 +409,27 @@ export default function Generate() {
         return (
           <QuizRenderer
             mode="assessment"
-            questions={output.data.questions}
+            questions={structured.questions}
             onAttemptSaved={onAttemptSaved}
           />
         );
       case "worksheet":
         return (
-          <WorksheetRenderer data={output.data} studentName={active?.name} />
+          <WorksheetRenderer data={structured} studentName={active?.name} />
         );
       case "lessonplan":
         return (
           <LessonPlanRenderer
-            data={output.data}
+            data={structured}
             studentName={active?.name}
             grade={grade}
             duration={lessonPlanForm.duration}
           />
         );
       case "presentation":
-        return <PresentationRenderer data={output.data} />;
+        return <PresentationRenderer data={structured} />;
       case "games":
-        return <GameRenderer data={output.data} />;
+        return <GameRenderer data={structured} />;
     }
   }, [output, active, grade, lessonPlanForm.duration, savedLibraryItemId, libraryItems, saveAttempt]);
 

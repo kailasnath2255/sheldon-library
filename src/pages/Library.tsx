@@ -9,6 +9,8 @@ import WorksheetRenderer from "@/components/renderers/WorksheetRenderer";
 import LessonPlanRenderer from "@/components/renderers/LessonPlanRenderer";
 import PresentationRenderer from "@/components/renderers/PresentationRenderer";
 import GameRenderer from "@/components/renderers/GameRenderer";
+import HTMLContentRenderer from "@/components/renderers/HTMLContentRenderer";
+import MarkdownContentRenderer from "@/components/renderers/MarkdownContentRenderer";
 import { useStore } from "@/store/useStore";
 import type { LibraryItem, LibraryItemType } from "@/lib/types";
 import { formatRelative } from "@/lib/format";
@@ -415,6 +417,17 @@ const RenderedItem = ({
   item: LibraryItem;
   studentName: string;
 }) => {
+  // Flexible format dispatch — new HTML/markdown payloads from upgraded prompts
+  const p = item.payload as any;
+  if (p && typeof p === "object") {
+    if (p.format === "html" && typeof p.html === "string") {
+      return <HTMLContentRenderer html={p.html} filename={`${item.type}.html`} />;
+    }
+    if (p.format === "markdown" && typeof p.markdown === "string") {
+      return <MarkdownContentRenderer markdown={p.markdown} title={item.title} />;
+    }
+  }
+
   switch (item.type) {
     case "diagnostic":
       return (

@@ -15,6 +15,7 @@ import type {
   AnalysisResponse,
   AssessmentResponse,
   DiagnosticResponse,
+  FlexibleResponse,
   GamePayload,
   GameStyle,
   LessonPlanResponse,
@@ -228,10 +229,11 @@ export type AssessmentPayload = {
 };
 
 export const generateAssessment = (p: AssessmentPayload) =>
-  callWebhook<AssessmentResponse>("assessment-generate", p, {
+  callWebhook<AssessmentResponse | FlexibleResponse>("assessment-generate", p, {
     mockResolver: () => ({
       questions: MOCK_ASSESSMENT.questions.slice(0, p.numQ || 10),
     }),
+    timeoutMs: 120_000,
   });
 
 export type WorksheetPayload = {
@@ -246,7 +248,7 @@ export type WorksheetPayload = {
 };
 
 export const generateWorksheet = (p: WorksheetPayload) =>
-  callWebhook<WorksheetResponse>("worksheet-generate", p, {
+  callWebhook<WorksheetResponse | FlexibleResponse>("worksheet-generate", p, {
     mockResolver: () => {
       const filtered = MOCK_WORKSHEET.json.sections.filter((s) =>
         p.sections.length ? p.sections.includes(s.name) : true
@@ -272,7 +274,7 @@ export type LessonPlanPayload = {
 };
 
 export const generateLessonPlan = (p: LessonPlanPayload) =>
-  callWebhook<LessonPlanResponse>("lessonplan-generate", p, {
+  callWebhook<LessonPlanResponse | FlexibleResponse>("lessonplan-generate", p, {
     mockResolver: () => ({
       json: {
         ...MOCK_LESSON_PLAN.json,
@@ -293,7 +295,7 @@ export type PresentationPayload = {
 };
 
 export const generatePresentation = (p: PresentationPayload) =>
-  callWebhook<PresentationResponse>("presentation-generate", p, {
+  callWebhook<PresentationResponse | FlexibleResponse>("presentation-generate", p, {
     mockResolver: () => MOCK_PRESENTATION,
     timeoutMs: 180_000,
   });
@@ -309,8 +311,9 @@ export type GamePayloadInput = {
 };
 
 export const generateGame = (p: GamePayloadInput) =>
-  callWebhook<GamePayload>("game-generate", p, {
+  callWebhook<GamePayload | FlexibleResponse>("game-generate", p, {
     mockResolver: () => mockGameForStyle(p.gameStyle),
+    timeoutMs: 120_000,
   });
 
 export const presentationToPptx = (slides: any[]) =>
