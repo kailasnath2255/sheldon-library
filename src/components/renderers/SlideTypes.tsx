@@ -34,7 +34,7 @@ export const DefinitionSlide = ({ slide }: { slide: Slide }) => (
     <h2 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold mt-4">
       {slide.title}
     </h2>
-    <div className="mt-8 bg-white/70 rounded-2xl p-6 max-w-2xl">
+    <div className="mt-8 bg-white/70 dark:bg-deep-surface/70 rounded-2xl p-6 max-w-2xl">
       <p className="text-3xl font-display font-extrabold text-purple">
         {slide.definition?.term}
       </p>
@@ -70,7 +70,7 @@ export const CompareSlide = ({ slide }: { slide: Slide }) => (
       {[slide.compare?.left, slide.compare?.right].map((col, i) => (
         <div
           key={i}
-          className="bg-white/70 rounded-2xl p-5"
+          className="bg-white/70 dark:bg-deep-surface/70 rounded-2xl p-5"
         >
           <p className="font-display font-extrabold text-2xl text-purple">
             {col?.title}
@@ -112,7 +112,7 @@ export const IDoWeDoYouDoSlide = ({ slide }: { slide: Slide }) => {
               y: i <= step ? 0 : 10,
             }}
             transition={{ duration: 0.35 }}
-            className="bg-white/80 rounded-2xl p-5 flex flex-col"
+            className="bg-white/80 dark:bg-deep-surface/80 rounded-2xl p-5 flex flex-col"
           >
             <p
               className={`pill bg-${c.color}/15 text-${c.color}`}
@@ -229,7 +229,7 @@ export const DragSortSlide = ({ slide }: { slide: Slide }) => {
         {slide.title}
       </h2>
 
-      <div className="mt-5 flex flex-wrap gap-2 min-h-[60px] bg-white/40 rounded-xl p-3 border-2 border-dashed border-navy/15">
+      <div className="mt-5 flex flex-wrap gap-2 min-h-[60px] bg-white/40 dark:bg-deep-surface/40 rounded-xl p-3 border-2 border-dashed border-navy/15">
         {remaining.map((it) => (
           <motion.button
             key={it}
@@ -253,7 +253,7 @@ export const DragSortSlide = ({ slide }: { slide: Slide }) => {
           <div
             key={b.name}
             data-bucket={b.name}
-            className="bg-white/70 rounded-2xl p-4 border-2 border-dashed border-purple/30 flex flex-col"
+            className="bg-white/70 dark:bg-deep-surface/70 rounded-2xl p-4 border-2 border-dashed border-purple/30 flex flex-col"
           >
             <p className="font-display font-bold text-purple">{b.name}</p>
             <div className="flex flex-wrap gap-1.5 mt-2 flex-1 content-start">
@@ -354,7 +354,7 @@ export const TakeawaySlide = ({ slide }: { slide: Slide }) => (
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: i * 0.15 }}
-          className="bg-white/70 rounded-xl px-4 py-3 flex gap-3 items-start"
+          className="bg-white/70 dark:bg-deep-surface/70 rounded-xl px-4 py-3 flex gap-3 items-start"
         >
           <span className="w-7 h-7 rounded-full bg-purple text-white flex items-center justify-center font-bold shrink-0 text-sm">
             {i + 1}

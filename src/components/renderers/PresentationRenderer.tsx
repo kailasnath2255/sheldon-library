@@ -105,41 +105,45 @@ export default function PresentationRenderer({
           </motion.div>
         </AnimatePresence>
 
-        {/* Super Sheldon branding watermark */}
-        <div className="absolute top-3 left-3 flex items-center gap-2 bg-white/90 dark:bg-deep-surface/90 backdrop-blur rounded-full pl-1.5 pr-3 py-1 border-2 border-ss-ink-900 dark:border-white/40 shadow-soft pointer-events-none">
-          <img src="/logo.webp" alt="" className="w-6 h-6 rounded-full object-contain" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-ss-ink-900 dark:text-white">
+        {/* Super Sheldon branding watermark — bigger, always visible */}
+        <div className="absolute top-4 left-4 flex items-center gap-2.5 bg-white backdrop-blur rounded-full pl-1.5 pr-4 py-1.5 border-2 border-ss-ink-900 shadow-soft-lg pointer-events-none z-10">
+          <div className="w-9 h-9 rounded-full bg-white border-2 border-ss-ink-900 overflow-hidden flex items-center justify-center">
+            <img src="/logo.webp" alt="" className="w-[88%] h-[88%] object-contain" />
+          </div>
+          <span className="text-xs font-extrabold uppercase tracking-[0.14em] text-ss-ink-900">
             Super Sheldon
           </span>
         </div>
 
-        {/* Controls */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur rounded-full shadow-lg px-3 py-2 flex items-center gap-2">
+        {/* Controls — fixed dark/light combo so Next button is ALWAYS visible regardless of theme */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 bg-ss-ink-900 dark:bg-white border-2 border-ss-ink-900 dark:border-white/80 rounded-full shadow-soft-lg px-3 py-2 flex items-center gap-1.5">
           <button
             onClick={() => setIdx((i) => Math.max(0, i - 1))}
             disabled={idx === 0}
-            className="p-1.5 rounded-full hover:bg-navy/5 disabled:opacity-30"
+            className="p-2 rounded-full hover:bg-white/15 dark:hover:bg-ss-ink-900/15 disabled:opacity-30 transition"
             aria-label="Previous slide"
           >
-            <ChevronLeft className="w-5 h-5 text-navy" />
+            <ChevronLeft className="w-5 h-5 text-white dark:text-ss-ink-900" />
           </button>
-          <span className="text-sm font-bold text-navy tabular-nums px-1">
-            {idx + 1}{" "}
-            <span className="text-navy/40">/ {total}</span>
+          <span className="text-sm font-bold text-white dark:text-ss-ink-900 tabular-nums px-2">
+            {idx + 1}
+            <span className="text-white/50 dark:text-ss-ink-900/50"> / {total}</span>
           </span>
           <button
             onClick={() => setIdx((i) => Math.min(total - 1, i + 1))}
             disabled={idx === total - 1}
-            className="p-1.5 rounded-full hover:bg-navy/5 disabled:opacity-30"
+            className="p-2 rounded-full hover:bg-white/15 dark:hover:bg-ss-ink-900/15 disabled:opacity-30 transition"
             aria-label="Next slide"
           >
-            <ChevronRight className="w-5 h-5 text-navy" />
+            <ChevronRight className="w-5 h-5 text-white dark:text-ss-ink-900" />
           </button>
-          <span className="w-px h-5 bg-navy/15 mx-1" />
+          <span className="w-px h-5 bg-white/20 dark:bg-ss-ink-900/20 mx-1" />
           <button
             onClick={() => setShowNotes((s) => !s)}
-            className={`p-1.5 rounded-full transition ${
-              showNotes ? "bg-purple text-white" : "hover:bg-navy/5 text-navy"
+            className={`p-2 rounded-full transition ${
+              showNotes
+                ? "bg-ss-orange-500 text-white"
+                : "hover:bg-white/15 dark:hover:bg-ss-ink-900/15 text-white dark:text-ss-ink-900"
             }`}
             aria-label="Toggle teacher notes"
           >
@@ -147,39 +151,42 @@ export default function PresentationRenderer({
           </button>
           <button
             onClick={toggleFullscreen}
-            className="p-1.5 rounded-full hover:bg-navy/5 text-navy"
+            className="p-2 rounded-full hover:bg-white/15 dark:hover:bg-ss-ink-900/15 transition text-white dark:text-ss-ink-900"
             aria-label="Toggle fullscreen"
           >
-            {fullscreen ? (
-              <Minimize className="w-4 h-4" />
-            ) : (
-              <Maximize className="w-4 h-4" />
-            )}
+            {fullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Notes drawer */}
+        {/* Teacher Notes drawer — fixed dark surface + white text always */}
         <AnimatePresence>
           {showNotes && (
             <motion.aside
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 30 }}
-              className="absolute top-3 right-3 bottom-16 w-[calc(100%-1.5rem)] sm:w-72 bg-navy text-white rounded-2xl shadow-xl p-4 overflow-y-auto scrollbar-thin"
+              className="absolute top-4 right-4 bottom-20 w-[calc(100%-2rem)] sm:w-80 bg-ss-ink-900 text-white rounded-2xl shadow-soft-lg border-2 border-ss-ink-900 dark:border-white/40 p-5 overflow-y-auto scrollbar-thin z-10"
             >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-display font-bold">Teacher notes</h4>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-ss-orange-300">
+                    Speaker
+                  </p>
+                  <h4 className="font-display font-extrabold text-lg text-white mt-0.5">
+                    Teacher notes
+                  </h4>
+                </div>
                 <button
                   onClick={() => setShowNotes(false)}
-                  className="p-1 rounded hover:bg-white/10"
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-white"
                   aria-label="Close notes"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-sm text-white/85 leading-relaxed">
-                {slide.notes ?? "No notes for this slide."}
+              <p className="text-sm text-white leading-relaxed">
+                {slide.notes ?? <span className="text-white/60 italic">No notes for this slide.</span>}
               </p>
             </motion.aside>
           )}
