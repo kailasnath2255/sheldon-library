@@ -52,7 +52,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-sonnet-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 90000
         }
       },
       "id": "cl-001",
@@ -75,7 +75,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('Diagnostic Build Prompt').first().json._payload && $('Diagnostic Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Diagnostic Build Prompt').first().json.system }, { role: 'user', content: $('Diagnostic Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 90000
         }
       },
       "id": "hf-001",
@@ -186,7 +186,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 90000
         }
       },
       "id": "cl-002",
@@ -209,7 +209,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('Analyze Build Prompt').first().json._payload && $('Analyze Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Analyze Build Prompt').first().json.system }, { role: 'user', content: $('Analyze Build Prompt').first().json.user }], max_tokens: 2000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 90000
         }
       },
       "id": "hf-002",
@@ -320,7 +320,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-sonnet-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 90000
+          "timeout": 240000
         }
       },
       "id": "cl-003",
@@ -343,7 +343,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('Assessment Build Prompt').first().json._payload && $('Assessment Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Assessment Build Prompt').first().json.system }, { role: 'user', content: $('Assessment Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 90000
+          "timeout": 240000
         }
       },
       "id": "hf-003",
@@ -454,7 +454,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 120000
         }
       },
       "id": "cl-004",
@@ -477,7 +477,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('Worksheet Build Prompt').first().json._payload && $('Worksheet Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Worksheet Build Prompt').first().json.system }, { role: 'user', content: $('Worksheet Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 120000
         }
       },
       "id": "hf-004",
@@ -588,7 +588,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 120000
         }
       },
       "id": "cl-005",
@@ -611,7 +611,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('LessonPlan Build Prompt').first().json._payload && $('LessonPlan Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('LessonPlan Build Prompt').first().json.system }, { role: 'user', content: $('LessonPlan Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 120000
         }
       },
       "id": "hf-005",
@@ -722,7 +722,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-sonnet-4-5', max_tokens: 16000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 150000
+          "timeout": 240000
         }
       },
       "id": "cl-006",
@@ -745,7 +745,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('Presentation Build Prompt').first().json._payload && $('Presentation Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Presentation Build Prompt').first().json.system }, { role: 'user', content: $('Presentation Build Prompt').first().json.user }], max_tokens: 6000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 150000
+          "timeout": 240000
         }
       },
       "id": "hf-006",
@@ -856,7 +856,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 180000
         }
       },
       "id": "cl-007",
@@ -879,7 +879,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($('Game Build Prompt').first().json._payload && $('Game Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Game Build Prompt').first().json.system }, { role: 'user', content: $('Game Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
         "options": {
-          "timeout": 60000
+          "timeout": 180000
         }
       },
       "id": "hf-007",
