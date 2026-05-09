@@ -12,8 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { renderSlide } from "./SlideTypes";
 import type { PresentationResponse } from "@/lib/types";
-import { presentationToPptx } from "@/lib/api";
-import { triggerBase64Download } from "@/lib/pdf";
+import { buildPptx } from "@/lib/pptx";
 
 export default function PresentationRenderer({
   data,
@@ -52,22 +51,11 @@ export default function PresentationRenderer({
   const handlePptx = async () => {
     const id = toast.loading("Building PPTX…");
     try {
-      const res = await presentationToPptx(slides);
-      if (res.base64) {
-        triggerBase64Download(
-          res.base64,
-          res.filename,
-          "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-        );
-        toast.success("PPTX ready!", { id });
-      } else {
-        toast(
-          "Mock mode — connect n8n to download a real PPTX. Slides JSON is in the page.",
-          { id, icon: "ℹ️" }
-        );
-      }
-    } catch {
-      toast.error("Couldn't build PPTX — try again.", { id });
+      await buildPptx(slides, "presentation");
+      toast.success("PPTX ready!", { id });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Couldn't build PPTX — try again.";
+      toast.error(msg, { id });
     }
   };
 
