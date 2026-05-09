@@ -19,29 +19,23 @@ const NAV = [
 export default function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-0 h-screen p-4 gap-3 border-r-2 border-ss-ink-900 dark:border-white/50">
-      {/* Free-standing logo — top-left, big, no circle */}
+      {/* Free-standing logo — bigger; white halo behind it in dark mode */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
         className="px-1"
       >
-        <img
-          src="/logo.webp"
-          alt="Super Sheldon"
-          className="w-32 h-auto object-contain drop-shadow-md"
-        />
-        <div className="mt-2 px-1">
-          <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-ss-ink-500 dark:text-ss-ink-300">
-            Super Sheldon
-          </p>
-          <h1 className="font-display font-extrabold text-xl leading-tight text-ss-ink-900 dark:text-white mt-0.5">
-            Library
-          </h1>
-          <p className="mt-2 text-[12px] leading-snug text-ss-ink-500 dark:text-ss-ink-300">
-            A premium teacher co-pilot for every classroom.
-          </p>
+        <div className="inline-block dark:bg-white dark:rounded-3xl dark:p-2 dark:shadow-soft-lg">
+          <img
+            src="/logo.webp"
+            alt="Super Sheldon"
+            className="w-44 h-auto object-contain drop-shadow-md"
+          />
         </div>
+        <p className="mt-3 px-1 text-[12px] leading-snug text-ss-ink-500 dark:text-ss-ink-300">
+          A premium teacher co-pilot for every classroom.
+        </p>
       </motion.div>
 
       {/* Nav pills */}
