@@ -19,20 +19,18 @@ const NAV = [
 export default function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-0 h-screen p-4 gap-3 border-r-2 border-ss-ink-900 dark:border-white/50">
-      {/* Free-standing logo — bigger; white halo behind it in dark mode */}
+      {/* Free-standing logo — bigger; soft white halo around silhouette in dark mode */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
         className="px-1"
       >
-        <div className="inline-block dark:bg-white dark:rounded-3xl dark:p-2 dark:shadow-soft-lg">
-          <img
-            src="/logo.webp"
-            alt="Super Sheldon"
-            className="w-44 h-auto object-contain drop-shadow-md"
-          />
-        </div>
+        <img
+          src="/logo.webp"
+          alt="Super Sheldon"
+          className="w-44 h-auto object-contain drop-shadow-md dark:[filter:drop-shadow(0_0_8px_rgba(255,255,255,0.85))_drop-shadow(0_0_20px_rgba(255,255,255,0.55))]"
+        />
         <p className="mt-3 px-1 text-[12px] leading-snug text-ss-ink-500 dark:text-ss-ink-300">
           A premium teacher co-pilot for every classroom.
         </p>

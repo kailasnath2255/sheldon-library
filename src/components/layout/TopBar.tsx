@@ -30,15 +30,13 @@ export default function TopBar() {
         className="sticky top-0 z-30 px-4 md:px-6 py-4 backdrop-blur-md bg-bgLight/70 dark:bg-deep-bg/70 border-b-2 border-ss-ink-900 dark:border-white/50"
       >
         <div className="flex items-center justify-between gap-3">
-          {/* Mobile brand — logo only, no text */}
+          {/* Mobile brand — logo only, soft white halo in dark mode */}
           <Link to="/" className="lg:hidden flex items-center" aria-label="Super Sheldon">
-            <div className="inline-block dark:bg-white dark:rounded-2xl dark:p-1 dark:shadow-soft">
-              <img
-                src="/logo.webp"
-                alt="Super Sheldon"
-                className="w-20 h-auto object-contain drop-shadow"
-              />
-            </div>
+            <img
+              src="/logo.webp"
+              alt="Super Sheldon"
+              className="w-20 h-auto object-contain drop-shadow dark:[filter:drop-shadow(0_0_6px_rgba(255,255,255,0.85))_drop-shadow(0_0_14px_rgba(255,255,255,0.5))]"
+            />
           </Link>
 
           {/* Active Student chip */}
