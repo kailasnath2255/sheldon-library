@@ -47,7 +47,7 @@ export default function SequenceGame({
                 ? item === correctSequence[i]
                   ? "bg-teal/10 border-teal/40"
                   : "bg-coral/10 border-coral/40"
-                : "bg-white border-navy/15"
+                : "bg-white dark:bg-deep-surface border-navy/15"
             }`}
           >
             <span className="w-7 h-7 rounded-full bg-purple text-white flex items-center justify-center font-bold text-sm">

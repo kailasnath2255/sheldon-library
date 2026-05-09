@@ -65,7 +65,7 @@ export default function WorksheetRenderer({
 
       <div
         ref={ref}
-        className="bg-white rounded-2xl shadow-soft border border-navy/5 p-6 md:p-8 space-y-6"
+        className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-6 md:p-8 space-y-6"
         style={{ pageBreakInside: "auto" }}
       >
         {/* Banner */}

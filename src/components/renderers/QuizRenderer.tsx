@@ -203,7 +203,7 @@ export default function QuizRenderer({
                     className={`text-left rounded-2xl border-2 p-4 hover:scale-[1.01] transition-all ${
                       selected
                         ? "bg-purple/5 border-purple shadow-md"
-                        : "bg-white border-navy/10 hover:border-purple/40"
+                        : "bg-white dark:bg-deep-surface border-navy/10 hover:border-purple/40"
                     }`}
                   >
                     <div className="flex items-start gap-3">

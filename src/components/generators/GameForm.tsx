@@ -52,7 +52,7 @@ export default function GameForm({
                 className={`text-left px-4 py-3 rounded-xl border transition ${
                   active
                     ? "bg-purple text-white border-purple shadow-sm"
-                    : "bg-white border-navy/15 hover:bg-navy/5"
+                    : "bg-white dark:bg-deep-surface border-navy/15 hover:bg-navy/5"
                 }`}
               >
                 <div className="font-semibold text-sm">{s.label}</div>

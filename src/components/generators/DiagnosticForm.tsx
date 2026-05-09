@@ -41,7 +41,7 @@ export default function DiagnosticForm({
                 className={`px-3 py-3 rounded-xl text-sm font-semibold border transition text-left ${
                   active
                     ? "bg-purple text-white border-purple shadow-sm"
-                    : "bg-white text-navy border-navy/15 hover:bg-navy/5"
+                    : "bg-white dark:bg-deep-surface text-navy border-navy/15 hover:bg-navy/5"
                 }`}
               >
                 {g}

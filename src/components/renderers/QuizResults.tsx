@@ -79,7 +79,7 @@ export default function QuizResults({
                 : data.score >= 50
                 ? "border-gold"
                 : "border-coral"
-            } bg-white flex flex-col items-center justify-center shadow-soft`}
+            } bg-white dark:bg-deep-surface flex flex-col items-center justify-center shadow-soft`}
           >
             <div
               className={`font-display text-5xl font-extrabold ${scoreColor(
@@ -105,7 +105,7 @@ export default function QuizResults({
 
       {/* Per-skill chart */}
       {showSkillsChart && skillData.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
+        <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5">
           <h4 className="font-display text-lg font-bold text-navy mb-3">
             Per-skill score
           </h4>

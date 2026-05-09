@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { Country, NewStudent } from "@/lib/types";
 import { pickAvatarColor } from "@/lib/mockData";
+import { inputCls, Field } from "@/components/generators/shared";
+import Button from "@/components/shared/Button";
 
 const COUNTRIES: Country[] = ["UK", "Australia", "India", "USA", "Singapore", "NZ"];
 
@@ -40,12 +42,9 @@ export default function AddStudentModal({
 
   if (!open) return null;
 
-  const inputCls =
-    "w-full px-4 py-3 rounded-xl border border-navy/15 bg-white text-navy placeholder-navy/40 focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none transition";
-
   return (
     <div
-      className="fixed inset-0 z-40 bg-navy/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-up"
+      className="fixed inset-0 z-40 bg-ss-ink-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-up"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -53,23 +52,26 @@ export default function AddStudentModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+        className="bg-white dark:bg-deep-surface rounded-3xl ss-edge shadow-soft-lg w-full max-w-md p-6"
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="add-student-title" className="font-display text-2xl font-extrabold text-navy">
-            Add a student
-          </h2>
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="eyebrow">New student</p>
+            <h2 id="add-student-title" className="font-display text-2xl font-extrabold text-ss-ink-900 dark:text-white mt-1">
+              Add a student
+            </h2>
+          </div>
           <button
             onClick={onClose}
-            className="p-1 rounded hover:bg-navy/5"
+            className="p-2 rounded-full hover:bg-ss-ink-100 dark:hover:bg-deep-border transition"
             aria-label="Close"
           >
-            <X className="w-5 h-5 text-navy/60" />
+            <X className="w-5 h-5 text-ss-ink-500 dark:text-ss-ink-300" />
           </button>
         </div>
 
         <form
-          className="space-y-3"
+          className="space-y-4"
           onSubmit={async (e) => {
             e.preventDefault();
             if (!form.name.trim()) return;
@@ -82,22 +84,20 @@ export default function AddStudentModal({
             }
           }}
         >
-          <label className="block">
-            <span className="pill bg-navy/5 text-navy/70">Name</span>
+          <Field label="Name">
             <input
               required
-              className={`mt-1 ${inputCls}`}
+              className={inputCls}
               value={form.name}
               placeholder="e.g. Maya Patel"
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             />
-          </label>
+          </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="block">
-              <span className="pill bg-navy/5 text-navy/70">Grade</span>
+            <Field label="Grade">
               <select
-                className={`mt-1 ${inputCls}`}
+                className={inputCls}
                 value={form.grade}
                 onChange={(e) => setForm((f) => ({ ...f, grade: Number(e.target.value) }))}
               >
@@ -107,11 +107,10 @@ export default function AddStudentModal({
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="block">
-              <span className="pill bg-navy/5 text-navy/70">Country</span>
+            </Field>
+            <Field label="Country">
               <select
-                className={`mt-1 ${inputCls}`}
+                className={inputCls}
                 value={form.country}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, country: e.target.value as Country }))
@@ -123,47 +122,43 @@ export default function AddStudentModal({
                   </option>
                 ))}
               </select>
-            </label>
+            </Field>
           </div>
 
-          <label className="block">
-            <span className="pill bg-navy/5 text-navy/70">Subject</span>
+          <Field label="Subject">
             <input
-              className={`mt-1 ${inputCls}`}
+              className={inputCls}
               value={form.subject}
               placeholder="Maths · English · Science…"
               onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
             />
-          </label>
+          </Field>
 
-          <label className="block">
-            <span className="pill bg-navy/5 text-navy/70">Parent email (optional)</span>
+          <Field label="Parent email (optional)">
             <input
               type="email"
-              className={`mt-1 ${inputCls}`}
+              className={inputCls}
               value={form.parentEmail ?? ""}
               placeholder="parent@example.com"
               onChange={(e) =>
                 setForm((f) => ({ ...f, parentEmail: e.target.value || undefined }))
               }
             />
-          </label>
+          </Field>
 
-          <div className="flex items-center gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-5 py-3 rounded-xl border border-navy/20 text-navy font-semibold hover:bg-navy/5 transition"
-            >
+          <div className="flex items-center gap-2 pt-3">
+            <Button type="button" variant="secondary" size="md" onClick={onClose} className="flex-1">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="primary"
+              size="md"
               disabled={!form.name.trim() || submitting}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-purple text-white font-semibold hover:bg-purple/90 active:scale-[0.98] disabled:opacity-50 transition"
+              className="flex-1"
             >
               {submitting ? "Saving…" : "Add student"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

@@ -78,7 +78,7 @@ export default function MatchGame({
                     ? "bg-teal/10 border-teal/40 text-teal"
                     : isPicked
                     ? "bg-purple/10 border-purple text-purple"
-                    : "bg-white border-navy/15 text-navy hover:border-purple/40"
+                    : "bg-white dark:bg-deep-surface border-navy/15 text-navy hover:border-purple/40"
                 }`}
               >
                 {matched && <CheckCircle2 className="w-4 h-4 inline mr-1" />}
@@ -101,7 +101,7 @@ export default function MatchGame({
                     ? "bg-teal/10 border-teal/40 text-teal"
                     : isPicked
                     ? "bg-purple/10 border-purple text-purple"
-                    : "bg-white border-navy/15 text-navy hover:border-purple/40"
+                    : "bg-white dark:bg-deep-surface border-navy/15 text-navy hover:border-purple/40"
                 }`}
               >
                 {matched && <CheckCircle2 className="w-4 h-4 inline mr-1" />}

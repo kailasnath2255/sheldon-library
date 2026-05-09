@@ -172,7 +172,7 @@ export const QuizSlide = ({ slide }: { slide: Slide }) => {
                   ? "bg-teal/10 border-teal"
                   : showResult && isThisPicked
                   ? "bg-coral/10 border-coral"
-                  : "bg-white border-navy/10 hover:border-purple/40"
+                  : "bg-white dark:bg-deep-surface border-navy/10 hover:border-purple/40"
               }`}
             >
               <div className="flex items-start gap-3">
@@ -241,7 +241,7 @@ export const DragSortSlide = ({ slide }: { slide: Slide }) => {
               const bucket = el?.closest<HTMLElement>("[data-bucket]")?.dataset.bucket;
               if (bucket) onDrop(it, bucket);
             }}
-            className="px-4 py-2 rounded-xl bg-white shadow-soft text-navy font-semibold cursor-grab active:cursor-grabbing"
+            className="px-4 py-2 rounded-xl bg-white dark:bg-deep-surface shadow-soft text-navy font-semibold cursor-grab active:cursor-grabbing"
           >
             {it}
           </motion.button>
@@ -390,7 +390,7 @@ export const renderSlide = (slide: Slide) => {
       return <TakeawaySlide slide={slide} />;
     default:
       return (
-        <div className="rounded-3xl bg-white p-10 h-full flex items-center justify-center">
+        <div className="rounded-3xl bg-white dark:bg-deep-surface p-10 h-full flex items-center justify-center">
           <pre className="text-xs">{JSON.stringify(slide, null, 2)}</pre>
         </div>
       );

@@ -18,8 +18,8 @@ export default function ModelSelector({
     <div
       className={
         compact
-          ? "bg-white rounded-2xl shadow-soft border border-navy/5 p-4"
-          : "bg-white rounded-2xl shadow-soft border border-navy/5 p-5"
+          ? "bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-4"
+          : "bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5"
       }
     >
       <div className="flex items-center gap-2 mb-3">
@@ -46,7 +46,7 @@ export default function ModelSelector({
               className={`relative flex-1 min-w-[110px] text-left px-3 py-2 rounded-xl border text-sm font-semibold transition ${
                 active
                   ? "bg-purple text-white border-purple shadow-sm"
-                  : "bg-white text-navy border-navy/15 hover:bg-navy/5"
+                  : "bg-white dark:bg-deep-surface text-navy border-navy/15 hover:bg-navy/5"
               }`}
               aria-pressed={active}
             >

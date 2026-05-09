@@ -71,7 +71,7 @@ export default function WorksheetForm({
                 className={`text-left text-sm px-3 py-2 rounded-lg border transition ${
                   on
                     ? "bg-purple/10 border-purple/40 text-purple font-semibold"
-                    : "bg-white border-navy/15 text-navy/70 hover:bg-navy/5"
+                    : "bg-white dark:bg-deep-surface border-navy/15 text-navy/70 hover:bg-navy/5"
                 }`}
               >
                 {on ? "✓ " : ""}

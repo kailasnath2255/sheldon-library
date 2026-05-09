@@ -46,7 +46,7 @@ export default function LessonPlanRenderer({
         </button>
       </div>
 
-      <header className="bg-white rounded-2xl shadow-soft border border-navy/5 p-6">
+      <header className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-6">
         <p className="pill bg-purple/10 text-purple">Lesson Plan</p>
         <h2 className="font-display text-3xl font-extrabold text-navy mt-2">
           {lp.topic}
@@ -85,7 +85,7 @@ export default function LessonPlanRenderer({
       </header>
 
       {/* Timeline */}
-      <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-6">
+      <section className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-6">
         <h3 className="font-display text-xl font-bold text-navy mb-4">
           Timeline
         </h3>
@@ -126,13 +126,13 @@ export default function LessonPlanRenderer({
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
+        <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5">
           <h4 className="font-display font-bold text-navy flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-gold" /> Assessment
           </h4>
           <p className="text-navy/70 text-sm mt-2">{lp.assessment}</p>
         </div>
-        <div className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
+        <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5">
           <h4 className="font-display font-bold text-navy flex items-center gap-2">
             <Backpack className="w-4 h-4 text-purple" /> Homework
           </h4>

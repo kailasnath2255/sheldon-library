@@ -53,7 +53,7 @@ export default function SortGame({ items, buckets }: Props) {
                   .bucket;
                 if (b) drop(it, b);
               }}
-              className="px-4 py-2 bg-white rounded-xl shadow-soft text-navy font-bold cursor-grab active:cursor-grabbing select-none"
+              className="px-4 py-2 bg-white dark:bg-deep-surface rounded-xl shadow-soft text-navy font-bold cursor-grab active:cursor-grabbing select-none"
             >
               {it}
             </motion.button>
@@ -66,7 +66,7 @@ export default function SortGame({ items, buckets }: Props) {
           <div
             key={b.name}
             data-bucket={b.name}
-            className="bg-white rounded-2xl border-2 border-dashed border-teal/40 p-4 min-h-[120px]"
+            className="bg-white dark:bg-deep-surface rounded-2xl border-2 border-dashed border-teal/40 p-4 min-h-[120px]"
           >
             <p className="font-display font-bold text-teal text-lg">{b.name}</p>
             <div className="flex flex-wrap gap-1.5 mt-2">
