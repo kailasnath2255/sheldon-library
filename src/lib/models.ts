@@ -6,26 +6,26 @@ export type ModelChoice = {
 };
 
 export const MODEL_CHOICES: ModelChoice[] = [
-  { id: "claude",                                              label: "Claude",     hint: "Primary · best quality",  provider: "claude" },
-  { id: "hf:Qwen/Qwen2.5-7B-Instruct",                         label: "Qwen 2.5",   hint: "Fast · STEM friendly",    provider: "hf" },
-  { id: "hf:meta-llama/Meta-Llama-3.1-8B-Instruct",            label: "Llama 3.1",  hint: "Balanced · 8B",            provider: "hf" },
-  { id: "hf:mistralai/Mixtral-8x7B-Instruct-v0.1",             label: "Mixtral",    hint: "Strongest open · 8x7B",   provider: "hf" },
+  { id: "claude",                                              label: "Claude",     hint: "Primary · best quality",      provider: "claude" },
+  { id: "hf:meta-llama/Llama-3.3-70B-Instruct",                label: "Llama 3.3",  hint: "Strongest open · 70B",         provider: "hf" },
+  { id: "hf:Qwen/Qwen2.5-72B-Instruct",                        label: "Qwen 2.5",   hint: "Top tier open · 72B",          provider: "hf" },
+  { id: "hf:deepseek-ai/DeepSeek-V3",                          label: "DeepSeek",   hint: "Reasoning-focused",            provider: "hf" },
+  { id: "hf:mistralai/Mistral-Nemo-Instruct-2407",             label: "Mistral Nemo", hint: "Fast · balanced · 12B",      provider: "hf" },
 ];
 
 export const DEFAULT_MODEL_ID = "claude";
 
 /**
  * Per-tool allowed models. Claude is always first (recommended).
- * We hide weak models for tools where they consistently underperform —
- * e.g., Qwen on long lesson plans, Llama on 24-slide presentations.
+ * We hide weaker/slower models for tools where they consistently underperform.
  */
 export const TOOL_MODELS: Record<string, string[]> = {
-  diagnostic:   ["claude", "hf:mistralai/Mixtral-8x7B-Instruct-v0.1", "hf:Qwen/Qwen2.5-7B-Instruct"],
-  assessment:   ["claude", "hf:mistralai/Mixtral-8x7B-Instruct-v0.1", "hf:meta-llama/Meta-Llama-3.1-8B-Instruct"],
-  worksheet:    ["claude", "hf:mistralai/Mixtral-8x7B-Instruct-v0.1", "hf:meta-llama/Meta-Llama-3.1-8B-Instruct"],
-  lessonplan:   ["claude", "hf:mistralai/Mixtral-8x7B-Instruct-v0.1"],
-  presentation: ["claude", "hf:mistralai/Mixtral-8x7B-Instruct-v0.1"],
-  games:        ["claude", "hf:mistralai/Mixtral-8x7B-Instruct-v0.1"],
+  diagnostic:   ["claude", "hf:meta-llama/Llama-3.3-70B-Instruct", "hf:Qwen/Qwen2.5-72B-Instruct"],
+  assessment:   ["claude", "hf:meta-llama/Llama-3.3-70B-Instruct", "hf:Qwen/Qwen2.5-72B-Instruct", "hf:mistralai/Mistral-Nemo-Instruct-2407"],
+  worksheet:    ["claude", "hf:meta-llama/Llama-3.3-70B-Instruct", "hf:mistralai/Mistral-Nemo-Instruct-2407"],
+  lessonplan:   ["claude", "hf:meta-llama/Llama-3.3-70B-Instruct", "hf:deepseek-ai/DeepSeek-V3"],
+  presentation: ["claude", "hf:meta-llama/Llama-3.3-70B-Instruct"],
+  games:        ["claude", "hf:meta-llama/Llama-3.3-70B-Instruct", "hf:deepseek-ai/DeepSeek-V3"],
 };
 
 export const modelsForTool = (tool?: string | null): ModelChoice[] => {

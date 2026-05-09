@@ -159,13 +159,14 @@ export default function Library() {
   };
 
   const selectCls =
-    "px-3 py-2 rounded-xl border border-navy/15 bg-white text-navy text-sm focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none";
+    "px-3 py-2 rounded-xl border border-navy/15 bg-white dark:bg-deep-surface text-navy text-sm focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none";
 
   return (
     <div>
       <PageHero
-        title="Library"
-        subtitle="Every artifact you've generated — search, filter, and reopen any of them."
+        eyebrow="Library"
+        title="Every artifact, one place."
+        subtitle="Search, filter, and reopen anything you've generated."
       />
 
       {/* Search bar */}
@@ -175,7 +176,7 @@ export default function Library() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by title, student, or type…"
-          className="w-full pl-11 pr-10 py-3 rounded-xl border border-navy/15 bg-white text-navy placeholder-navy/40 focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none transition"
+          className="w-full pl-11 pr-10 py-3 rounded-xl border border-navy/15 bg-white dark:bg-deep-surface text-navy placeholder-navy/40 focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none transition"
           aria-label="Search library"
         />
         {search && (
@@ -201,7 +202,7 @@ export default function Library() {
                 className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${
                   active
                     ? "bg-purple text-white border-purple"
-                    : "bg-white text-navy border-navy/15 hover:bg-navy/5"
+                    : "bg-white dark:bg-deep-surface text-navy border-navy/15 hover:bg-navy/5"
                 }`}
               >
                 {f.label}
@@ -234,7 +235,7 @@ export default function Library() {
             className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-semibold transition ${
               showFilters
                 ? "bg-purple text-white border-purple"
-                : "bg-white text-navy border-navy/15 hover:bg-navy/5"
+                : "bg-white dark:bg-deep-surface text-navy border-navy/15 hover:bg-navy/5"
             }`}
             aria-expanded={showFilters}
           >
@@ -243,7 +244,7 @@ export default function Library() {
             {activeFilterCount > 0 && (
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                  showFilters ? "bg-white/30 text-white" : "bg-purple text-white"
+                  showFilters ? "bg-white dark:bg-deep-surface/30 text-white" : "bg-purple text-white"
                 }`}
               >
                 {activeFilterCount}
@@ -267,7 +268,7 @@ export default function Library() {
 
         {/* Advanced filter panel */}
         {showFilters && (
-          <div className="bg-white rounded-2xl shadow-soft border border-navy/5 p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-up">
+          <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 animate-fade-up">
             <label className="block">
               <span className="pill bg-navy/5 text-navy/70">Student</span>
               <select
@@ -340,7 +341,7 @@ export default function Library() {
               <button
                 key={item.id}
                 onClick={() => open(item.id)}
-                className="text-left bg-white rounded-2xl shadow-soft border border-navy/5 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                className="text-left bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
                 <TypePill type={item.type} />
                 <p className="font-display font-bold text-navy mt-3 line-clamp-2">
@@ -380,7 +381,7 @@ export default function Library() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden flex flex-col"
+            className="bg-white dark:bg-deep-surface rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden flex flex-col"
           >
             <header className="px-5 py-4 border-b border-navy/5 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">

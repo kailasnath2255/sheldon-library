@@ -68,8 +68,9 @@ export default function Progress() {
   return (
     <div>
       <PageHero
-        title="Progress & PTM Reports"
-        subtitle="Track strengths, weaknesses and recommendations over time."
+        eyebrow="Progress"
+        title="Strengths over time."
+        subtitle="Track strengths, weaknesses and recommendations across attempts."
         right={
           <button
             onClick={handleExportPdf}
@@ -87,7 +88,7 @@ export default function Progress() {
         <select
           value={selected?.id ?? ""}
           onChange={(e) => setStudentId(e.target.value)}
-          className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-navy/15 bg-white text-navy font-semibold text-sm focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none cursor-pointer"
+          className="w-full appearance-none px-4 py-3 pr-10 rounded-xl border border-navy/15 bg-white dark:bg-deep-surface text-navy font-semibold text-sm focus:border-purple focus:ring-2 focus:ring-purple/20 outline-none cursor-pointer"
           aria-label="Select student"
         >
           {students.map((s) => (
@@ -133,11 +134,11 @@ export default function Progress() {
 
         {/* Trajectory chart */}
         {trajectory.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-navy/5 p-10 text-center text-navy/60 shadow-soft">
+          <div className="bg-white dark:bg-deep-surface rounded-2xl border border-navy/5 p-10 text-center text-navy/60 shadow-soft">
             Nothing here yet — take an assessment to start a trajectory.
           </div>
         ) : (
-          <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
+          <section className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5">
             <h3 className="font-display font-bold text-navy mb-3">
               Score trajectory
             </h3>
@@ -181,7 +182,7 @@ export default function Progress() {
           .map((a) => (
             <section
               key={a.id}
-              className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5"
+              className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5"
             >
               <header className="flex items-start justify-between gap-3 mb-3">
                 <div>

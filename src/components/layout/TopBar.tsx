@@ -1,7 +1,9 @@
 import { Link, NavLink } from "react-router-dom";
-import { CalendarDays, LayoutDashboard, Users, Wand2, BookOpen, TrendingUp } from "lucide-react";
-import OwlMascot from "@/components/shared/OwlMascot";
+import { CalendarDays, LayoutDashboard, Users, Wand2, BookOpen, TrendingUp, GraduationCap } from "lucide-react";
+import { motion } from "framer-motion";
 import ActiveStudentSelector from "./ActiveStudentSelector";
+import ThemeToggle from "./ThemeToggle";
+import { useActiveStudent } from "@/store/useStore";
 
 const MOBILE_NAV = [
   { to: "/", label: "Home", icon: LayoutDashboard, end: true },
@@ -12,41 +14,73 @@ const MOBILE_NAV = [
 ];
 
 export default function TopBar() {
+  const active = useActiveStudent();
   const today = new Date().toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
   });
 
   return (
     <>
-      <header className="bg-white/80 backdrop-blur-sm border-b border-navy/5 sticky top-0 z-30">
-        <div className="px-4 md:px-8 py-3 flex items-center justify-between gap-3">
+      <motion.header
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
+        className="sticky top-0 z-30 px-4 md:px-6 py-4 backdrop-blur-md bg-bgLight/70 dark:bg-deep-bg/70 border-b-2 border-ss-ink-900 dark:border-white/50"
+      >
+        <div className="flex items-center justify-between gap-3">
+          {/* Mobile brand */}
           <Link to="/" className="lg:hidden flex items-center gap-2">
-            <OwlMascot size={32} />
-            <span className="font-display font-extrabold text-navy">Sheldon's</span>
+            <div className="w-9 h-9 rounded-xl bg-soft-lavender dark:bg-deep-lavender flex items-center justify-center">
+              <span className="font-display font-extrabold text-ss-orange-500 text-base">S</span>
+            </div>
+            <span className="font-display font-extrabold text-ss-ink-900 dark:text-white">Sheldon's</span>
           </Link>
-          <div className="hidden md:flex items-center gap-2 text-sm text-navy/60 ml-1">
-            <CalendarDays className="w-4 h-4" />
-            <span>{today}</span>
-          </div>
-          <div className="flex items-center gap-3">
+
+          {/* Active Student chip */}
+          <div className="flex-1 flex justify-start lg:justify-start">
             <ActiveStudentSelector />
           </div>
+
+          {/* Right chips */}
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-full ss-card">
+              <CalendarDays className="w-4 h-4 text-ss-orange-500" strokeWidth={2.2} />
+              <span className="text-sm font-semibold text-ss-ink-900 dark:text-white whitespace-nowrap">
+                {today}
+              </span>
+            </div>
+            {active ? (
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-full ss-card">
+                <GraduationCap className="w-4 h-4 text-ss-orange-500" strokeWidth={2.2} />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[9px] uppercase tracking-[0.14em] font-bold text-ss-ink-500 dark:text-ss-ink-400">
+                    Grade
+                  </span>
+                  <span className="text-sm font-bold text-ss-ink-900 dark:text-white -mt-0.5">
+                    {active.grade}
+                  </span>
+                </div>
+              </div>
+            ) : null}
+            <ThemeToggle />
+          </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-navy/5 flex justify-around py-2">
+      <nav className="lg:hidden fixed bottom-3 inset-x-3 z-30 ss-card flex justify-around p-2">
         {MOBILE_NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                isActive ? "text-purple" : "text-navy/60"
+              `flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition ${
+                isActive
+                  ? "bg-ss-orange-500 text-white"
+                  : "text-ss-ink-500 dark:text-ss-ink-300 hover:text-ss-orange-500"
               }`
             }
           >

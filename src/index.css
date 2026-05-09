@@ -3,55 +3,114 @@
 @tailwind utilities;
 
 @layer base {
-  html,
-  body,
-  #root {
-    height: 100%;
+  /* Theme-switching CSS variables (RGB triplets so Tailwind alpha-modifiers work).
+     `navy` and `bgLight` Tailwind tokens read these. */
+  :root {
+    --ss-text: 15 17 21;       /* #0F1115 */
+    --ss-bg:   255 248 242;    /* #FFF8F2 */
   }
+  html.dark {
+    --ss-text: 242 244 247;    /* #F2F4F7 */
+    --ss-bg:   11 13 17;       /* #0B0D11 */
+  }
+
+  html, body, #root { height: 100%; }
+
   body {
     font-family: "Inter", system-ui, sans-serif;
-    color: #1b2a4e;
-    background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
-    background-attachment: fixed;
+    color: rgb(var(--ss-text));
+    background: rgb(var(--ss-bg));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 240ms cubic-bezier(.2,.8,.2,1), color 240ms cubic-bezier(.2,.8,.2,1);
   }
+
   h1, h2, h3, h4 {
     font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
-    color: #0f1115;
+    color: #0F1115;
+    letter-spacing: -0.01em;
   }
+  html.dark h1, html.dark h2, html.dark h3, html.dark h4 {
+    color: #FFFFFF;
+  }
+
   *:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.4);
-    border-radius: 8px;
+    box-shadow: 0 0 0 3px rgba(255, 107, 31, 0.35);
+    border-radius: 10px;
   }
 }
 
 @layer utilities {
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(27, 42, 78, 0.18);
-    border-radius: 3px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(27, 42, 78, 0.32);
-  }
+  .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(15, 17, 21, 0.18); border-radius: 3px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(15, 17, 21, 0.32); }
+  html.dark .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
+
   .pill {
     @apply inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.08em];
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center px-3 py-1 rounded-full bg-white/60 text-ss-ink-700 text-[10px] font-bold uppercase tracking-[0.14em] border border-ss-ink-900/10;
+  }
+  html.dark .eyebrow {
+    @apply bg-white/10 text-ss-ink-200 border-white/10;
+  }
+
+  /* Pill card — used in sidebar nav, topbar chips. Sharp 2px black border like the design ref. */
+  .ss-card {
+    @apply bg-white rounded-2xl border-2 border-ss-ink-900 shadow-soft;
+  }
+  html.dark .ss-card {
+    @apply bg-deep-surface border-white/50 shadow-deep-soft;
+  }
+
+  /* Sharp-edge card — used for hero blocks, eyebrow info cards */
+  .ss-edge {
+    @apply border-2 border-ss-ink-900;
+  }
+  html.dark .ss-edge {
+    @apply border-white/50;
+  }
+
+  /* Hover-lift transition (compose with .ss-card) */
+  .ss-lift {
+    @apply transition duration-300 ease-out hover:-translate-y-0.5 hover:shadow-soft-lg;
+  }
+
+  /* Massive display heading */
+  .ss-display {
+    @apply font-display font-extrabold leading-[1.02] tracking-tight;
+  }
+
+  /* Soft pastel block — base for hero panels */
+  .ss-pastel {
+    @apply rounded-3xl p-6 md:p-10 transition-colors duration-300;
+  }
+
+  /* Skeleton shimmer */
+  .ss-skeleton {
+    background: linear-gradient(90deg, rgba(15,17,21,.06) 0px, rgba(15,17,21,.12) 200px, rgba(15,17,21,.06) 400px);
+    background-size: 600px 100%;
+    animation: shimmer 1.6s linear infinite;
+  }
+  html.dark .ss-skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,.04) 0px, rgba(255,255,255,.08) 200px, rgba(255,255,255,.04) 400px);
+    background-size: 600px 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 @media print {
-  .no-print {
-    display: none !important;
-  }
-  body {
-    background: white;
-  }
+  .no-print { display: none !important; }
+  body { background: white; }
 }

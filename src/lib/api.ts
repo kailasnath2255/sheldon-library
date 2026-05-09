@@ -166,6 +166,7 @@ export type DiagnosticPayload = {
   goal: string;
   numQuestions: number;
   model?: string;
+  hfModel?: string;
 };
 
 export const generateDiagnostic = (p: DiagnosticPayload) =>
@@ -181,6 +182,7 @@ export type AnalyzePayload = {
   answers: { questionId: string; chosenIndex: number }[];
   questions: DiagnosticResponse["questions"];
   model?: string;
+  hfModel?: string;
 };
 
 export const analyzeDiagnostic = (p: AnalyzePayload) =>
@@ -222,6 +224,7 @@ export type AssessmentPayload = {
   grade: number;
   subject: string;
   model?: string;
+  hfModel?: string;
 };
 
 export const generateAssessment = (p: AssessmentPayload) =>
@@ -239,6 +242,7 @@ export type WorksheetPayload = {
   grade: number;
   subject: string;
   model?: string;
+  hfModel?: string;
 };
 
 export const generateWorksheet = (p: WorksheetPayload) =>
@@ -264,6 +268,7 @@ export type LessonPlanPayload = {
   grade: number;
   subject: string;
   model?: string;
+  hfModel?: string;
 };
 
 export const generateLessonPlan = (p: LessonPlanPayload) =>
@@ -284,6 +289,7 @@ export type PresentationPayload = {
   grade: number;
   subject: string;
   model?: string;
+  hfModel?: string;
 };
 
 export const generatePresentation = (p: PresentationPayload) =>
@@ -299,6 +305,7 @@ export type GamePayloadInput = {
   grade: number;
   subject: string;
   model?: string;
+  hfModel?: string;
 };
 
 export const generateGame = (p: GamePayloadInput) =>

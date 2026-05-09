@@ -12,25 +12,20 @@
       "name": "Diagnostic Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        100
-      ]
+      "position": [200, 100]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst grade = Number(p.grade || 6);\nconst prevGrade = Math.max(1, grade - 1);\nconst system = [\n  'You are Sheldon, an expert tutor and curriculum specialist for Super Sheldon EdTech. You generate diagnostic tests that identify learning gaps.',\n  '',\n  'Rules:',\n  '- The test covers the PREVIOUS year syllabus (Grade ' + prevGrade + ') to surface gaps.',\n  '- Match the region curriculum: UK National, Australia ACARA V9, India CBSE, USA Common Core, Singapore MOE, NZ NZC.',\n  '- Each question targets ONE skill. Distribute across 4-5 distinct skills.',\n  '- Difficulty mix: 30% easy, 50% medium, 20% hard.',\n  '- 4 options per question, exactly ONE correct. Wrong answers reflect common mistakes.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"questions\": [ { \"id\": \"q1\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0, \"skill\": \"Fractions\" } ] }'\n].join('\\n');\nconst user = [\n  'Generate a ' + (p.numQuestions || 10) + '-question diagnostic test for:',\n  'Student: ' + (p.name || 'Student') + ', Grade ' + grade + ', ' + (p.region || 'UK') + ', Subject: ' + (p.subject || 'Maths'),\n  'Parent goal: ' + (p.goal || 'Curriculum Alignment'),\n  '',\n  'Test the PREVIOUS year content (Grade ' + prevGrade + ').'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'diagnostic-generate' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst grade = Number(p.grade);\nconst safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 6;\nconst prevGrade = Math.max(1, safeGrade - 1);\nconst numQ = Number(p.numQuestions);\nconst safeNumQ = Number.isFinite(numQ) && numQ > 0 ? Math.min(50, numQ) : 10;\nconst system = [\n  'You are Sheldon, an expert tutor and curriculum specialist for Super Sheldon EdTech. You generate diagnostic tests that identify learning gaps.',\n  '',\n  'Rules:',\n  '- The test covers the PREVIOUS year syllabus (Grade ' + prevGrade + ') to surface gaps.',\n  '- Match the region curriculum: UK National, Australia ACARA V9, India CBSE, USA Common Core, Singapore MOE, NZ NZC.',\n  '- Each question targets ONE skill. Distribute across 4-5 distinct skills.',\n  '- Difficulty mix: 30% easy, 50% medium, 20% hard.',\n  '- 4 options per question, exactly ONE correct. Wrong answers reflect common mistakes.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences. Shape:',\n  '{ \"questions\": [ { \"id\": \"q1\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0, \"skill\": \"Fractions\" } ] }'\n].join('\\n');\nconst user = [\n  'Generate a ' + safeNumQ + '-question diagnostic test for:',\n  'Student: ' + (p.name || 'Student') + ', Grade ' + safeGrade + ', ' + (p.region || 'UK') + ', Subject: ' + (p.subject || 'Maths'),\n  'Parent goal: ' + (p.goal || 'Curriculum Alignment'),\n  '',\n  'Test the PREVIOUS year content (Grade ' + prevGrade + ').'\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _kind: 'diagnostic-generate' } }];"
       },
       "id": "bp-001",
       "name": "Diagnostic Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        100
-      ]
+      "position": [400, 100],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -41,25 +36,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-sonnet-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {}
+        "options": { "timeout": 60000 }
       },
       "id": "cl-001",
       "name": "Diagnostic Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        60
-      ],
+      "position": [600, 60],
       "onError": "continueErrorOutput"
     },
     {
@@ -70,48 +59,53 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('Diagnostic Build Prompt').first().json._payload && $('Diagnostic Build Prompt').first().json._payload.hfModel) || 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Diagnostic Build Prompt').first().json.system }, { role: 'user', content: $('Diagnostic Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: ($('Diagnostic Build Prompt').first().json._payload && $('Diagnostic Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Diagnostic Build Prompt').first().json.system }, { role: 'user', content: $('Diagnostic Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "hf-001",
       "name": "Diagnostic HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        160
-      ]
+      "position": [600, 160],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed.quizId = 'q_' + Date.now();\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) {\n    text = data.content[0].text; provider = 'claude'; model = data.model || '';\n  } else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {\n    text = data.choices[0].message.content; provider = 'hf'; model = data.model || '';\n  } else if (data.error) {\n    const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error));\n    throw new Error('Provider error: ' + String(em).slice(0, 300));\n  } else {\n    throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  }\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{');\n  const startArr = s.indexOf('[');\n  let start;\n  if (startObj === -1) start = startArr;\n  else if (startArr === -1) start = startObj;\n  else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON found: ' + s.slice(0, 200));\n  const lastObj = s.lastIndexOf('}');\n  const lastArr = s.lastIndexOf(']');\n  const end = Math.max(lastObj, lastArr);\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  out = JSON.parse(s.slice(start, end + 1));\n  if (!out || typeof out !== 'object') throw new Error('Parsed result is not an object');\n  if (!Array.isArray(out.questions)) throw new Error('Missing questions array');\n  out.quizId = 'q_' + Date.now();\n  out._provider = provider;\n  out._model = model;\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-001",
       "name": "Diagnostic Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        100
-      ]
+      "position": [800, 100]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'diagnostic-generate: AI generation failed';\nif (data.error) {\n  if (typeof data.error === 'string') msg = data.error;\n  else if (data.error.message) msg = data.error.message;\n  else msg = JSON.stringify(data.error).slice(0, 300);\n} else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-001",
+      "name": "Diagnostic Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 220]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-001",
       "name": "Diagnostic Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        100
-      ]
+      "position": [1000, 100]
     },
+
     {
       "parameters": {
         "httpMethod": "POST",
@@ -123,25 +117,20 @@
       "name": "Analyze Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        300
-      ]
+      "position": [200, 300]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst questions = Array.isArray(p.questions) ? p.questions : [];\nconst answers = Array.isArray(p.answers) ? p.answers : [];\nconst byId = Object.fromEntries(answers.map(a => [a.questionId, a.chosenIndex]));\nconst skillCounts = {};\nlet correct = 0;\nfor (const q of questions) {\n  const skill = q.skill || 'General';\n  skillCounts[skill] = skillCounts[skill] || { correct: 0, total: 0 };\n  skillCounts[skill].total += 1;\n  const c = byId[q.id];\n  if (c !== undefined && c === q.correctIndex) { correct += 1; skillCounts[skill].correct += 1; }\n}\nconst total = Math.max(1, questions.length);\nconst score = Math.round((correct / total) * 100);\nconst skills = {};\nObject.entries(skillCounts).forEach(([k, v]) => { skills[k] = Math.round((v.correct / Math.max(1, v.total)) * 100); });\nconst skillsLine = Object.entries(skills).map(([k, v]) => k + ': ' + v + '%').join(', ');\nconst system = [\n  'You are Sheldon, analysing a diagnostic test result for the parent and tutor.',\n  '',\n  'Given per-skill scores, write:',\n  '- 2-3 STRENGTHS (specific, encouraging, max 12 words each)',\n  '- 2-3 WEAKNESSES (specific but kind. Never use \"weak\" or \"bad\". Say \"needs more practice with...\")',\n  '- 3-4 RECOMMENDATIONS (concrete, time-bounded, max 15 words each)',\n  '- One ANALYSIS paragraph (3-4 sentences, warm tutor voice, references actual skills/scores)',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"strengths\": [\"...\"], \"weaknesses\": [\"...\"], \"recommendations\": [\"...\"], \"analysisText\": \"...\" }'\n].join('\\n');\nconst user = [\n  'Quiz id: ' + (p.quizId || ''),\n  'Overall score: ' + score + '% (' + correct + '/' + total + ')',\n  'Per-skill scores: ' + skillsLine\n].join('\\n');\nreturn [{ json: { system: system, user: user, _score: score, _skills: skills, _kind: 'diagnostic-analyze' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst questions = Array.isArray(p.questions) ? p.questions : [];\nconst answers = Array.isArray(p.answers) ? p.answers : [];\nconst byId = Object.fromEntries(answers.map(a => [a && a.questionId, a && a.chosenIndex]));\nconst skillCounts = {};\nlet correct = 0;\nfor (const q of questions) {\n  const skill = (q && q.skill) || 'General';\n  skillCounts[skill] = skillCounts[skill] || { correct: 0, total: 0 };\n  skillCounts[skill].total += 1;\n  const c = byId[q && q.id];\n  if (c !== undefined && c === q.correctIndex) { correct += 1; skillCounts[skill].correct += 1; }\n}\nconst total = Math.max(1, questions.length);\nconst score = Math.round((correct / total) * 100);\nconst skills = {};\nObject.entries(skillCounts).forEach(([k, v]) => { skills[k] = Math.round((v.correct / Math.max(1, v.total)) * 100); });\nconst skillsLine = Object.entries(skills).map(([k, v]) => k + ': ' + v + '%').join(', ');\nconst system = [\n  'You are Sheldon, analysing a diagnostic test result for the parent and tutor.',\n  '',\n  'Given per-skill scores, write:',\n  '- 2-3 STRENGTHS (specific, encouraging, max 12 words each)',\n  '- 2-3 WEAKNESSES (specific but kind. Never use \"weak\" or \"bad\". Say \"needs more practice with...\")',\n  '- 3-4 RECOMMENDATIONS (concrete, time-bounded, max 15 words each)',\n  '- One ANALYSIS paragraph (3-4 sentences, warm tutor voice, references actual skills/scores)',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences. Shape:',\n  '{ \"strengths\": [\"...\"], \"weaknesses\": [\"...\"], \"recommendations\": [\"...\"], \"analysisText\": \"...\" }'\n].join('\\n');\nconst user = [\n  'Quiz id: ' + (p.quizId || ''),\n  'Overall score: ' + score + '% (' + correct + '/' + total + ')',\n  'Per-skill scores: ' + skillsLine\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _score: score, _skills: skills, _kind: 'diagnostic-analyze' } }];"
       },
       "id": "bp-002",
       "name": "Analyze Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        300
-      ]
+      "position": [400, 300],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -152,25 +141,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {}
+        "options": { "timeout": 60000 }
       },
       "id": "cl-002",
       "name": "Analyze Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        260
-      ],
+      "position": [600, 260],
       "onError": "continueErrorOutput"
     },
     {
@@ -181,48 +164,53 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('Analyze Build Prompt').first().json._payload && $('Analyze Build Prompt').first().json._payload.hfModel) || 'meta-llama/Meta-Llama-3.1-8B-Instruct', messages: [{ role: 'system', content: $('Analyze Build Prompt').first().json.system }, { role: 'user', content: $('Analyze Build Prompt').first().json.user }], max_tokens: 2000, temperature: 0.3 }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: ($('Analyze Build Prompt').first().json._payload && $('Analyze Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Analyze Build Prompt').first().json.system }, { role: 'user', content: $('Analyze Build Prompt').first().json.user }], max_tokens: 2000, temperature: 0.3 }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "hf-002",
       "name": "Analyze HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        360
-      ]
+      "position": [600, 360],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nconst bp = $('Analyze Build Prompt').first().json;\nreturn [{ json: { score: bp._score, skills: bp._skills, strengths: parsed.strengths || [], weaknesses: parsed.weaknesses || [], recommendations: parsed.recommendations || [], analysisText: parsed.analysisText || '', _provider: provider, _model: model } }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\n  else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\n  else if (data.error) { const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)); throw new Error('Provider error: ' + String(em).slice(0, 300)); }\n  else throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{'); const startArr = s.indexOf('[');\n  let start; if (startObj === -1) start = startArr; else if (startArr === -1) start = startObj; else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON: ' + s.slice(0, 200));\n  const lastObj = s.lastIndexOf('}'); const lastArr = s.lastIndexOf(']'); const end = Math.max(lastObj, lastArr);\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  const parsed = JSON.parse(s.slice(start, end + 1));\n  if (!parsed || typeof parsed !== 'object') throw new Error('Parsed not object');\n  let bp = {};\n  try { bp = $('Analyze Build Prompt').first().json || {}; } catch {}\n  out = {\n    score: typeof bp._score === 'number' ? bp._score : 0,\n    skills: bp._skills || {},\n    strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [],\n    weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [],\n    recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : [],\n    analysisText: parsed.analysisText || '',\n    _provider: provider,\n    _model: model,\n  };\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-002",
       "name": "Analyze Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        300
-      ]
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'diagnostic-analyze: AI analysis failed';\nif (data.error) { if (typeof data.error === 'string') msg = data.error; else if (data.error.message) msg = data.error.message; else msg = JSON.stringify(data.error).slice(0, 300); } else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-002",
+      "name": "Analyze Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 420]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-002",
       "name": "Analyze Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        300
-      ]
+      "position": [1000, 300]
     },
+
     {
       "parameters": {
         "httpMethod": "POST",
@@ -234,25 +222,20 @@
       "name": "Assessment Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        500
-      ]
+      "position": [200, 500]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst topics = Array.isArray(p.topics) ? p.topics.join(', ') : (p.topics || '');\nconst subtopics = Array.isArray(p.subtopics) ? p.subtopics.join(', ') : (p.subtopics || '');\nconst system = [\n  'You are Sheldon, generating a graded assessment.',\n  '',\n  'Rules:',\n  '- Match difficulty: Easy = recall, Medium = application, Hard = analysis/synthesis.',\n  '- Distribute marks evenly unless difficulty mix demands otherwise.',\n  '- Each question has an EXPLANATION (1-2 sentences) shown after submission.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"questions\": [ { \"id\": \"q1\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 2, \"marks\": 2, \"explanation\": \"...\" } ] }'\n].join('\\n');\nconst user = [\n  'Generate a ' + (p.numQ || 10) + '-question assessment.',\n  'Grade: ' + (p.grade || 7) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Topics: ' + topics + '.',\n  'Sub-topics: ' + subtopics + '.',\n  'Difficulty: ' + (p.difficulty || 'Medium') + '.',\n  'Total marks: ' + (p.marks || 20) + '.' + (p.timed ? ' Timed: ' + (p.totalTime || 30) + ' minutes.' : '')\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'assessment-generate' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst topics = Array.isArray(p.topics) ? p.topics.join(', ') : (p.topics || '');\nconst subtopics = Array.isArray(p.subtopics) ? p.subtopics.join(', ') : (p.subtopics || '');\nconst grade = Number(p.grade); const safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 7;\nconst numQ = Number(p.numQ); const safeNumQ = Number.isFinite(numQ) && numQ > 0 ? Math.min(50, numQ) : 10;\nconst marks = Number(p.marks); const safeMarks = Number.isFinite(marks) && marks > 0 ? marks : 20;\nconst system = [\n  'You are Sheldon, generating a graded assessment.',\n  '',\n  'Rules:',\n  '- Match difficulty: Easy = recall, Medium = application, Hard = analysis/synthesis.',\n  '- Distribute marks evenly unless difficulty mix demands otherwise.',\n  '- Each question has an EXPLANATION (1-2 sentences) shown after submission.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences. Shape:',\n  '{ \"questions\": [ { \"id\": \"q1\", \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 2, \"marks\": 2, \"explanation\": \"...\" } ] }'\n].join('\\n');\nconst user = [\n  'Generate a ' + safeNumQ + '-question assessment.',\n  'Grade: ' + safeGrade + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Topics: ' + topics + '.',\n  'Sub-topics: ' + subtopics + '.',\n  'Difficulty: ' + (p.difficulty || 'Medium') + '.',\n  'Total marks: ' + safeMarks + '.' + (p.timed ? ' Timed: ' + (Number(p.totalTime) || 30) + ' minutes.' : '')\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _kind: 'assessment-generate' } }];"
       },
       "id": "bp-003",
       "name": "Assessment Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        500
-      ]
+      "position": [400, 500],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -263,25 +246,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-sonnet-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {}
+        "options": { "timeout": 90000 }
       },
       "id": "cl-003",
       "name": "Assessment Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        460
-      ],
+      "position": [600, 460],
       "onError": "continueErrorOutput"
     },
     {
@@ -292,48 +269,53 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('Assessment Build Prompt').first().json._payload && $('Assessment Build Prompt').first().json._payload.hfModel) || 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Assessment Build Prompt').first().json.system }, { role: 'user', content: $('Assessment Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: ($('Assessment Build Prompt').first().json._payload && $('Assessment Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Assessment Build Prompt').first().json.system }, { role: 'user', content: $('Assessment Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
+        "options": { "timeout": 90000 }
       },
       "id": "hf-003",
       "name": "Assessment HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        560
-      ]
+      "position": [600, 560],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\n  else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\n  else if (data.error) { const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)); throw new Error('Provider error: ' + String(em).slice(0, 300)); }\n  else throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{'); const startArr = s.indexOf('[');\n  let start; if (startObj === -1) start = startArr; else if (startArr === -1) start = startObj; else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON: ' + s.slice(0, 200));\n  const end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  out = JSON.parse(s.slice(start, end + 1));\n  if (!out || typeof out !== 'object') throw new Error('Parsed not object');\n  if (!Array.isArray(out.questions)) throw new Error('Missing questions array');\n  out._provider = provider;\n  out._model = model;\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-003",
       "name": "Assessment Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        500
-      ]
+      "position": [800, 500]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'assessment-generate: AI generation failed';\nif (data.error) { if (typeof data.error === 'string') msg = data.error; else if (data.error.message) msg = data.error.message; else msg = JSON.stringify(data.error).slice(0, 300); } else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-003",
+      "name": "Assessment Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 620]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-003",
       "name": "Assessment Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        500
-      ]
+      "position": [1000, 500]
     },
+
     {
       "parameters": {
         "httpMethod": "POST",
@@ -345,25 +327,20 @@
       "name": "Worksheet Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        700
-      ]
+      "position": [200, 700]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst sections = Array.isArray(p.sections) ? p.sections.join(', ') : (p.sections || 'MCQs, Fill in the blanks');\nconst system = [\n  'You are Sheldon, generating a worksheet for a student.',\n  '',\n  'Rules:',\n  '- Tone: warm, playful but precise. Like a great tutor.',\n  '- For each section requested, include 4-6 items.',\n  '- Add a brief intro: \"What you will practice today\" (1-2 sentences).',\n  '- Match the grade level. Never above.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"json\": { \"topic\": \"...\", \"intro\": \"...\", \"sections\": [ { \"name\": \"MCQs\", \"items\": [ { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"answer\": \"A\" } ] }, { \"name\": \"Fill in the blanks\", \"items\": [ { \"sentence\": \"The capital of ___ is Paris.\", \"answer\": \"France\" } ] } ] } }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Type: ' + (p.type || 'Homework') + '.',\n  'Sections: ' + sections + '.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'worksheet-generate' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst sections = Array.isArray(p.sections) && p.sections.length ? p.sections.join(', ') : 'MCQs, Fill in the blanks';\nconst grade = Number(p.grade); const safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 5;\nconst system = [\n  'You are Sheldon, generating a worksheet for a student.',\n  '',\n  'Rules:',\n  '- Tone: warm, playful but precise. Like a great tutor.',\n  '- For each section requested, include 4-6 items.',\n  '- Add a brief intro: \"What you will practice today\" (1-2 sentences).',\n  '- Match the grade level. Never above.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences. Shape:',\n  '{ \"json\": { \"topic\": \"...\", \"intro\": \"...\", \"sections\": [ { \"name\": \"MCQs\", \"items\": [ { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"answer\": \"A\" } ] }, { \"name\": \"Fill in the blanks\", \"items\": [ { \"sentence\": \"The capital of ___ is Paris.\", \"answer\": \"France\" } ] } ] } }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + safeGrade + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Type: ' + (p.type || 'Homework') + '.',\n  'Sections: ' + sections + '.'\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _kind: 'worksheet-generate' } }];"
       },
       "id": "bp-004",
       "name": "Worksheet Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        700
-      ]
+      "position": [400, 700],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -374,25 +351,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 8000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {}
+        "options": { "timeout": 60000 }
       },
       "id": "cl-004",
       "name": "Worksheet Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        660
-      ],
+      "position": [600, 660],
       "onError": "continueErrorOutput"
     },
     {
@@ -403,48 +374,53 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('Worksheet Build Prompt').first().json._payload && $('Worksheet Build Prompt').first().json._payload.hfModel) || 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Worksheet Build Prompt').first().json.system }, { role: 'user', content: $('Worksheet Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: ($('Worksheet Build Prompt').first().json._payload && $('Worksheet Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Worksheet Build Prompt').first().json.system }, { role: 'user', content: $('Worksheet Build Prompt').first().json.user }], max_tokens: 4000, temperature: 0.3 }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "hf-004",
       "name": "Worksheet HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        760
-      ]
+      "position": [600, 760],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nconst out = parsed.json ? parsed : { json: parsed };\nout._provider = provider;\nout._model = model;\nreturn [{ json: out }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\n  else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\n  else if (data.error) { const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)); throw new Error('Provider error: ' + String(em).slice(0, 300)); }\n  else throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{'); const startArr = s.indexOf('[');\n  let start; if (startObj === -1) start = startArr; else if (startArr === -1) start = startObj; else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON: ' + s.slice(0, 200));\n  const end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  const parsed = JSON.parse(s.slice(start, end + 1));\n  if (!parsed || typeof parsed !== 'object') throw new Error('Parsed not object');\n  out = parsed.json ? parsed : { json: parsed };\n  out._provider = provider;\n  out._model = model;\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-004",
       "name": "Worksheet Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        700
-      ]
+      "position": [800, 700]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'worksheet-generate: AI generation failed';\nif (data.error) { if (typeof data.error === 'string') msg = data.error; else if (data.error.message) msg = data.error.message; else msg = JSON.stringify(data.error).slice(0, 300); } else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-004",
+      "name": "Worksheet Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 820]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-004",
       "name": "Worksheet Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        700
-      ]
+      "position": [1000, 700]
     },
+
     {
       "parameters": {
         "httpMethod": "POST",
@@ -456,25 +432,20 @@
       "name": "LessonPlan Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        900
-      ]
+      "position": [200, 900]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst system = [\n  'You are Sheldon, an experienced classroom teacher writing a 1:1 tutoring lesson plan.',\n  '',\n  'Rules:',\n  '- Timeline must add up to the requested duration.',\n  '- Use I-Do / We-Do / You-Do gradual release.',\n  '- Differentiation block must be specific. Not \"give harder questions\". Say WHAT.',\n  '- Homework should be 10-15 minutes.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"json\": { \"topic\": \"...\", \"objectives\": [\"...\"], \"timeline\": [ { \"time\": \"0-5 min\", \"activity\": \"...\", \"materials\": \"...\", \"notes\": \"...\" } ], \"differentiation\": { \"below\": \"...\", \"at\": \"...\", \"above\": \"...\" }, \"assessment\": \"...\", \"homework\": \"...\" } }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Class duration: ' + (p.duration || 60) + ' minutes.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'lessonplan-generate' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst grade = Number(p.grade); const safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 5;\nconst duration = Number(p.duration); const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 60;\nconst system = [\n  'You are Sheldon, an experienced classroom teacher writing a 1:1 tutoring lesson plan.',\n  '',\n  'Rules:',\n  '- Timeline must add up to the requested duration.',\n  '- Use I-Do / We-Do / You-Do gradual release.',\n  '- Differentiation block must be specific. Not \"give harder questions\". Say WHAT.',\n  '- Homework should be 10-15 minutes.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences. Shape:',\n  '{ \"json\": { \"topic\": \"...\", \"objectives\": [\"...\"], \"timeline\": [ { \"time\": \"0-5 min\", \"activity\": \"...\", \"materials\": \"...\", \"notes\": \"...\" } ], \"differentiation\": { \"below\": \"...\", \"at\": \"...\", \"above\": \"...\" }, \"assessment\": \"...\", \"homework\": \"...\" } }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + safeGrade + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Class duration: ' + safeDuration + ' minutes.'\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _kind: 'lessonplan-generate' } }];"
       },
       "id": "bp-005",
       "name": "LessonPlan Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        900
-      ]
+      "position": [400, 900],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -485,25 +456,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {}
+        "options": { "timeout": 60000 }
       },
       "id": "cl-005",
       "name": "LessonPlan Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        860
-      ],
+      "position": [600, 860],
       "onError": "continueErrorOutput"
     },
     {
@@ -514,48 +479,53 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('LessonPlan Build Prompt').first().json._payload && $('LessonPlan Build Prompt').first().json._payload.hfModel) || 'meta-llama/Meta-Llama-3.1-8B-Instruct', messages: [{ role: 'system', content: $('LessonPlan Build Prompt').first().json.system }, { role: 'user', content: $('LessonPlan Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: ($('LessonPlan Build Prompt').first().json._payload && $('LessonPlan Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('LessonPlan Build Prompt').first().json.system }, { role: 'user', content: $('LessonPlan Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "hf-005",
       "name": "LessonPlan HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        960
-      ]
+      "position": [600, 960],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nconst out = parsed.json ? parsed : { json: parsed };\nout._provider = provider;\nout._model = model;\nreturn [{ json: out }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\n  else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\n  else if (data.error) { const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)); throw new Error('Provider error: ' + String(em).slice(0, 300)); }\n  else throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{'); const startArr = s.indexOf('[');\n  let start; if (startObj === -1) start = startArr; else if (startArr === -1) start = startObj; else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON: ' + s.slice(0, 200));\n  const end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  const parsed = JSON.parse(s.slice(start, end + 1));\n  if (!parsed || typeof parsed !== 'object') throw new Error('Parsed not object');\n  out = parsed.json ? parsed : { json: parsed };\n  out._provider = provider;\n  out._model = model;\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-005",
       "name": "LessonPlan Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        900
-      ]
+      "position": [800, 900]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'lessonplan-generate: AI generation failed';\nif (data.error) { if (typeof data.error === 'string') msg = data.error; else if (data.error.message) msg = data.error.message; else msg = JSON.stringify(data.error).slice(0, 300); } else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-005",
+      "name": "LessonPlan Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 1020]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-005",
       "name": "LessonPlan Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        900
-      ]
+      "position": [1000, 900]
     },
+
     {
       "parameters": {
         "httpMethod": "POST",
@@ -567,25 +537,20 @@
       "name": "Presentation Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        1100
-      ]
+      "position": [200, 1120]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst system = [\n  'You are Sheldon, building a 1:1 tutoring class presentation.',\n  '',\n  'MANDATORY 10-section pedagogical flow (in this order):',\n  '1. Icebreaker / Rapport (1 slide)',\n  '2. Warm-up (1-2 slides)',\n  '3. Learning Objective (1 slide)',\n  '4. Definition (1-2 slides, type: definition)',\n  '5. Explanation with examples (3-5 slides; mix definition / image_caption / compare)',\n  '6. Activity (3 slides, type: ido_wedo_youdo)',\n  '7. Skill Task (1-2 slides)',\n  '8. Quick Assessment (5 slides, type: quiz)',\n  '9. Key Takeaways (1 slide, type: takeaway)',\n  '10. Closure HOTS (1 slide)',\n  '',\n  'Slide types: title, definition, image_caption, compare, ido_wedo_youdo, quiz, drag_sort, fill_blank, video, takeaway.',\n  'Aim for 15-20 slides total for a 60-minute class.',\n  'Each slide MUST have: type, title (or term for definition), notes (teacher script 2-4 sentences).',\n  '',\n  'Return ONLY valid JSON. No prose before or after. Shape:',\n  '{ \"slides\": [ { \"type\": \"title\", \"title\": \"...\", \"body\": \"...\", \"notes\": \"...\" }, { \"type\": \"definition\", \"title\": \"...\", \"definition\": { \"term\": \"...\", \"meaning\": \"...\" }, \"notes\": \"...\" }, { \"type\": \"ido_wedo_youdo\", \"title\": \"...\", \"iwy\": { \"iDo\": \"...\", \"weDo\": \"...\", \"youDo\": \"...\" }, \"notes\": \"...\" }, { \"type\": \"quiz\", \"title\": \"...\", \"quiz\": { \"question\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0, \"explanation\": \"...\" }, \"notes\": \"...\" }, { \"type\": \"takeaway\", \"title\": \"...\", \"takeaway\": { \"points\": [\"...\",\"...\"] }, \"notes\": \"...\" } ] }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Class duration: ' + (p.duration || 60) + ' minutes.',\n  'Difficulty: ' + (p.difficulty || 'Medium') + '.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'presentation-generate' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst grade = Number(p.grade); const safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 5;\nconst duration = Number(p.duration); const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 60;\nconst system = [\n  'You are Sheldon, building a 1:1 tutoring class presentation.',\n  '',\n  'MANDATORY 10-section pedagogical flow (in this order):',\n  '1. Icebreaker / Rapport (1 slide)',\n  '2. Warm-up (1-2 slides)',\n  '3. Learning Objective (1 slide)',\n  '4. Definition (1-2 slides, type: definition)',\n  '5. Explanation with examples (3-5 slides; mix definition / image_caption / compare)',\n  '6. Activity (3 slides, type: ido_wedo_youdo)',\n  '7. Skill Task (1-2 slides)',\n  '8. Quick Assessment (5 slides, type: quiz)',\n  '9. Key Takeaways (1 slide, type: takeaway)',\n  '10. Closure HOTS (1 slide)',\n  '',\n  'Slide types: title, definition, image_caption, compare, ido_wedo_youdo, quiz, drag_sort, fill_blank, video, takeaway.',\n  'Aim for 15-20 slides total for a 60-minute class.',\n  'Each slide MUST have: type, title (or term for definition), notes (teacher script 2-4 sentences).',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences. Shape:',\n  '{ \"slides\": [ { \"type\": \"title\", \"title\": \"...\", \"body\": \"...\", \"notes\": \"...\" } ] }'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + safeGrade + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Class duration: ' + safeDuration + ' minutes.',\n  'Difficulty: ' + (p.difficulty || 'Medium') + '.'\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _kind: 'presentation-generate' } }];"
       },
       "id": "bp-006",
       "name": "Presentation Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        1100
-      ]
+      "position": [400, 1120],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -596,27 +561,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-sonnet-4-5', max_tokens: 16000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {
-          "timeout": 90000
-        }
+        "options": { "timeout": 150000 }
       },
       "id": "cl-006",
       "name": "Presentation Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        1060
-      ],
+      "position": [600, 1080],
       "onError": "continueErrorOutput"
     },
     {
@@ -627,50 +584,53 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('Presentation Build Prompt').first().json._payload && $('Presentation Build Prompt').first().json._payload.hfModel) || 'mistralai/Mixtral-8x7B-Instruct-v0.1', messages: [{ role: 'system', content: $('Presentation Build Prompt').first().json.system }, { role: 'user', content: $('Presentation Build Prompt').first().json.user }], max_tokens: 6000, temperature: 0.3 }) }}",
-        "options": {
-          "timeout": 90000
-        }
+        "jsonBody": "={{ JSON.stringify({ model: ($('Presentation Build Prompt').first().json._payload && $('Presentation Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Presentation Build Prompt').first().json.system }, { role: 'user', content: $('Presentation Build Prompt').first().json.user }], max_tokens: 6000, temperature: 0.3 }) }}",
+        "options": { "timeout": 150000 }
       },
       "id": "hf-006",
       "name": "Presentation HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        1160
-      ]
+      "position": [600, 1180],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\n  else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\n  else if (data.error) { const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)); throw new Error('Provider error: ' + String(em).slice(0, 300)); }\n  else throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{'); const startArr = s.indexOf('[');\n  let start; if (startObj === -1) start = startArr; else if (startArr === -1) start = startObj; else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON: ' + s.slice(0, 200));\n  const end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  out = JSON.parse(s.slice(start, end + 1));\n  if (!out || typeof out !== 'object') throw new Error('Parsed not object');\n  if (!Array.isArray(out.slides)) throw new Error('Missing slides array');\n  out._provider = provider;\n  out._model = model;\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-006",
       "name": "Presentation Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        1100
-      ]
+      "position": [800, 1120]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'presentation-generate: AI generation failed';\nif (data.error) { if (typeof data.error === 'string') msg = data.error; else if (data.error.message) msg = data.error.message; else msg = JSON.stringify(data.error).slice(0, 300); } else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-006",
+      "name": "Presentation Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 1240]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-006",
       "name": "Presentation Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        1100
-      ]
+      "position": [1000, 1120]
     },
+
     {
       "parameters": {
         "httpMethod": "POST",
@@ -682,25 +642,20 @@
       "name": "Game Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        200,
-        1300
-      ]
+      "position": [200, 1340]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const p = ($json.body) || {};\nconst system = [\n  'You are Sheldon, designing a quick interactive learning game.',\n  '',\n  'Game styles and JSON shapes (pick the one matching the requested style):',\n  'sort: { \"gameType\": \"sort\", \"payload\": { \"items\": [\"...\"], \"buckets\": [ { \"name\": \"...\", \"correctItems\": [\"...\"] } ] } }',\n  'match: { \"gameType\": \"match\", \"payload\": { \"pairs\": [ { \"left\": \"...\", \"right\": \"...\" } ] } }',\n  'sequence: { \"gameType\": \"sequence\", \"payload\": { \"items\": [\"...\"], \"correctOrder\": [0,1,2,3] } }',\n  'fill-blank: { \"gameType\": \"fill-blank\", \"payload\": { \"sentence\": \"...\", \"blanks\": [\"...\",\"...\"] } }',\n  'quiz: { \"gameType\": \"quiz\", \"payload\": { \"questions\": [ { \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0 } ] } }',\n  '',\n  'Rules:',\n  '- 5-8 items / 4-6 questions per game.',\n  '- Match grade level.',\n  '',\n  'Return ONLY valid JSON. No prose before or after.'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + (p.grade || 5) + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Game style: ' + (p.gameStyle || 'sort') + '.'\n].join('\\n');\nreturn [{ json: { system: system, user: user, _payload: p, _kind: 'game-generate' } }];"
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst grade = Number(p.grade); const safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 5;\nconst system = [\n  'You are Sheldon, designing a quick interactive learning game.',\n  '',\n  'Game styles and JSON shapes (pick the one matching the requested style):',\n  'sort: { \"gameType\": \"sort\", \"payload\": { \"items\": [\"...\"], \"buckets\": [ { \"name\": \"...\", \"correctItems\": [\"...\"] } ] } }',\n  'match: { \"gameType\": \"match\", \"payload\": { \"pairs\": [ { \"left\": \"...\", \"right\": \"...\" } ] } }',\n  'sequence: { \"gameType\": \"sequence\", \"payload\": { \"items\": [\"...\"], \"correctOrder\": [0,1,2,3] } }',\n  'fill-blank: { \"gameType\": \"fill-blank\", \"payload\": { \"sentence\": \"...\", \"blanks\": [\"...\",\"...\"] } }',\n  'quiz: { \"gameType\": \"quiz\", \"payload\": { \"questions\": [ { \"text\": \"...\", \"options\": [\"A\",\"B\",\"C\",\"D\"], \"correctIndex\": 0 } ] } }',\n  '',\n  'Rules:',\n  '- 5-8 items / 4-6 questions per game.',\n  '- Match grade level.',\n  '',\n  'Return ONLY valid JSON. No prose before or after. No markdown fences.'\n].join('\\n');\nconst user = [\n  'Topic: ' + (p.topic || '') + ', Sub-topic: ' + (p.subtopic || '') + '.',\n  'Grade: ' + safeGrade + ', Subject: ' + (p.subject || 'Maths') + '.',\n  'Game style: ' + (p.gameStyle || 'sort') + '.'\n].join('\\n');\nreturn [{ json: { system, user, _payload: p, _kind: 'game-generate' } }];"
       },
       "id": "bp-007",
       "name": "Game Build Prompt",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        400,
-        1300
-      ]
+      "position": [400, 1340],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -711,25 +666,19 @@
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
-            {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
-            }
+            { "name": "anthropic-version", "value": "2023-06-01" }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ model: ($json._payload && $json._payload.model) || 'claude-haiku-4-5', max_tokens: 4000, system: $json.system, messages: [{ role: 'user', content: $json.user }] }) }}",
-        "options": {}
+        "options": { "timeout": 60000 }
       },
       "id": "cl-007",
       "name": "Game Claude",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        1260
-      ],
+      "position": [600, 1300],
       "onError": "continueErrorOutput"
     },
     {
@@ -740,488 +689,251 @@
         "nodeCredentialType": "huggingFaceApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: ($('Game Build Prompt').first().json._payload && $('Game Build Prompt').first().json._payload.hfModel) || 'Qwen/Qwen2.5-7B-Instruct', messages: [{ role: 'system', content: $('Game Build Prompt').first().json.system }, { role: 'user', content: $('Game Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ model: ($('Game Build Prompt').first().json._payload && $('Game Build Prompt').first().json._payload.hfModel) || 'meta-llama/Llama-3.3-70B-Instruct', messages: [{ role: 'system', content: $('Game Build Prompt').first().json.system }, { role: 'user', content: $('Game Build Prompt').first().json.user }], max_tokens: 3000, temperature: 0.3 }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "hf-007",
       "name": "Game HF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        1360
-      ]
+      "position": [600, 1400],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "const data = $json;\nlet text = '', provider = 'unknown', model = '';\nif (data && data.content && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\nelse if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\nelse { throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 300)); }\nlet jsonStr = text.replace(/^[^{\\[]*/, '').trim();\nconst start = jsonStr.indexOf('{');\nconst end = jsonStr.lastIndexOf('}');\nif (start === -1 || end === -1) throw new Error('No JSON in response: ' + text.slice(0, 200));\nlet parsed;\ntry { parsed = JSON.parse(jsonStr.slice(start, end + 1)); } catch (e) { throw new Error('JSON parse failed: ' + e.message); }\nparsed._provider = provider;\nparsed._model = model;\nreturn [{ json: parsed }];"
+        "jsCode": "let out = null;\nlet errMsg = null;\ntry {\n  const data = $json || {};\n  let text = '';\n  let provider = 'unknown';\n  let model = '';\n  if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) { text = data.content[0].text; provider = 'claude'; model = data.model || ''; }\n  else if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) { text = data.choices[0].message.content; provider = 'hf'; model = data.model || ''; }\n  else if (data.error) { const em = typeof data.error === 'string' ? data.error : (data.error.message || JSON.stringify(data.error)); throw new Error('Provider error: ' + String(em).slice(0, 300)); }\n  else throw new Error('Unrecognized LLM response: ' + JSON.stringify(data).slice(0, 200));\n  let s = String(text || '').trim();\n  s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n  const startObj = s.indexOf('{'); const startArr = s.indexOf('[');\n  let start; if (startObj === -1) start = startArr; else if (startArr === -1) start = startObj; else start = Math.min(startObj, startArr);\n  if (start === -1) throw new Error('No JSON: ' + s.slice(0, 200));\n  const end = Math.max(s.lastIndexOf('}'), s.lastIndexOf(']'));\n  if (end <= start) throw new Error('Unbalanced JSON: ' + s.slice(0, 200));\n  out = JSON.parse(s.slice(start, end + 1));\n  if (!out || typeof out !== 'object') throw new Error('Parsed not object');\n  if (!out.gameType) throw new Error('Missing gameType');\n  out._provider = provider;\n  out._model = model;\n} catch (e) {\n  errMsg = (e && e.message) ? e.message : String(e);\n}\nif (errMsg) return [{ json: { error: errMsg } }];\nreturn [{ json: out }];"
       },
       "id": "pr-007",
       "name": "Game Parse",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        800,
-        1300
-      ]
+      "position": [800, 1340]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const data = $json || {};\nlet msg = 'game-generate: AI generation failed';\nif (data.error) { if (typeof data.error === 'string') msg = data.error; else if (data.error.message) msg = data.error.message; else msg = JSON.stringify(data.error).slice(0, 300); } else if (data.message) msg = data.message;\nreturn [{ json: { error: msg } }];"
+      },
+      "id": "be-007",
+      "name": "Game Build Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 1460]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ $json }}",
-        "options": {}
+        "options": { "responseCode": "={{ $json.error ? 502 : 200 }}" }
       },
       "id": "rs-007",
       "name": "Game Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [
-        1000,
-        1300
-      ]
+      "position": [1000, 1340]
     }
   ],
   "connections": {
     "Diagnostic Webhook": {
-      "main": [
-        [
-          {
-            "node": "Diagnostic Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Diagnostic Build Prompt", "type": "main", "index": 0 }]]
     },
     "Diagnostic Build Prompt": {
       "main": [
-        [
-          {
-            "node": "Diagnostic Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Diagnostic Claude", "type": "main", "index": 0 }],
+        [{ "node": "Diagnostic Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Diagnostic Claude": {
       "main": [
-        [
-          {
-            "node": "Diagnostic Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Diagnostic HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Diagnostic Parse", "type": "main", "index": 0 }],
+        [{ "node": "Diagnostic HF", "type": "main", "index": 0 }]
       ]
     },
     "Diagnostic HF": {
       "main": [
-        [
-          {
-            "node": "Diagnostic Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Diagnostic Parse", "type": "main", "index": 0 }],
+        [{ "node": "Diagnostic Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Diagnostic Parse": {
-      "main": [
-        [
-          {
-            "node": "Diagnostic Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Diagnostic Respond", "type": "main", "index": 0 }]]
     },
+    "Diagnostic Build Error": {
+      "main": [[{ "node": "Diagnostic Respond", "type": "main", "index": 0 }]]
+    },
+
     "Analyze Webhook": {
-      "main": [
-        [
-          {
-            "node": "Analyze Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Analyze Build Prompt", "type": "main", "index": 0 }]]
     },
     "Analyze Build Prompt": {
       "main": [
-        [
-          {
-            "node": "Analyze Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Analyze Claude", "type": "main", "index": 0 }],
+        [{ "node": "Analyze Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Analyze Claude": {
       "main": [
-        [
-          {
-            "node": "Analyze Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Analyze HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Analyze Parse", "type": "main", "index": 0 }],
+        [{ "node": "Analyze HF", "type": "main", "index": 0 }]
       ]
     },
     "Analyze HF": {
       "main": [
-        [
-          {
-            "node": "Analyze Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Analyze Parse", "type": "main", "index": 0 }],
+        [{ "node": "Analyze Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Analyze Parse": {
-      "main": [
-        [
-          {
-            "node": "Analyze Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Analyze Respond", "type": "main", "index": 0 }]]
     },
+    "Analyze Build Error": {
+      "main": [[{ "node": "Analyze Respond", "type": "main", "index": 0 }]]
+    },
+
     "Assessment Webhook": {
-      "main": [
-        [
-          {
-            "node": "Assessment Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Assessment Build Prompt", "type": "main", "index": 0 }]]
     },
     "Assessment Build Prompt": {
       "main": [
-        [
-          {
-            "node": "Assessment Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Assessment Claude", "type": "main", "index": 0 }],
+        [{ "node": "Assessment Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Assessment Claude": {
       "main": [
-        [
-          {
-            "node": "Assessment Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Assessment HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Assessment Parse", "type": "main", "index": 0 }],
+        [{ "node": "Assessment HF", "type": "main", "index": 0 }]
       ]
     },
     "Assessment HF": {
       "main": [
-        [
-          {
-            "node": "Assessment Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Assessment Parse", "type": "main", "index": 0 }],
+        [{ "node": "Assessment Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Assessment Parse": {
-      "main": [
-        [
-          {
-            "node": "Assessment Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Assessment Respond", "type": "main", "index": 0 }]]
     },
+    "Assessment Build Error": {
+      "main": [[{ "node": "Assessment Respond", "type": "main", "index": 0 }]]
+    },
+
     "Worksheet Webhook": {
-      "main": [
-        [
-          {
-            "node": "Worksheet Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Worksheet Build Prompt", "type": "main", "index": 0 }]]
     },
     "Worksheet Build Prompt": {
       "main": [
-        [
-          {
-            "node": "Worksheet Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Worksheet Claude", "type": "main", "index": 0 }],
+        [{ "node": "Worksheet Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Worksheet Claude": {
       "main": [
-        [
-          {
-            "node": "Worksheet Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Worksheet HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Worksheet Parse", "type": "main", "index": 0 }],
+        [{ "node": "Worksheet HF", "type": "main", "index": 0 }]
       ]
     },
     "Worksheet HF": {
       "main": [
-        [
-          {
-            "node": "Worksheet Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Worksheet Parse", "type": "main", "index": 0 }],
+        [{ "node": "Worksheet Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Worksheet Parse": {
-      "main": [
-        [
-          {
-            "node": "Worksheet Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Worksheet Respond", "type": "main", "index": 0 }]]
     },
+    "Worksheet Build Error": {
+      "main": [[{ "node": "Worksheet Respond", "type": "main", "index": 0 }]]
+    },
+
     "LessonPlan Webhook": {
-      "main": [
-        [
-          {
-            "node": "LessonPlan Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "LessonPlan Build Prompt", "type": "main", "index": 0 }]]
     },
     "LessonPlan Build Prompt": {
       "main": [
-        [
-          {
-            "node": "LessonPlan Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "LessonPlan Claude", "type": "main", "index": 0 }],
+        [{ "node": "LessonPlan Build Error", "type": "main", "index": 0 }]
       ]
     },
     "LessonPlan Claude": {
       "main": [
-        [
-          {
-            "node": "LessonPlan Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "LessonPlan HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "LessonPlan Parse", "type": "main", "index": 0 }],
+        [{ "node": "LessonPlan HF", "type": "main", "index": 0 }]
       ]
     },
     "LessonPlan HF": {
       "main": [
-        [
-          {
-            "node": "LessonPlan Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "LessonPlan Parse", "type": "main", "index": 0 }],
+        [{ "node": "LessonPlan Build Error", "type": "main", "index": 0 }]
       ]
     },
     "LessonPlan Parse": {
-      "main": [
-        [
-          {
-            "node": "LessonPlan Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "LessonPlan Respond", "type": "main", "index": 0 }]]
     },
+    "LessonPlan Build Error": {
+      "main": [[{ "node": "LessonPlan Respond", "type": "main", "index": 0 }]]
+    },
+
     "Presentation Webhook": {
-      "main": [
-        [
-          {
-            "node": "Presentation Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Presentation Build Prompt", "type": "main", "index": 0 }]]
     },
     "Presentation Build Prompt": {
       "main": [
-        [
-          {
-            "node": "Presentation Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Presentation Claude", "type": "main", "index": 0 }],
+        [{ "node": "Presentation Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Presentation Claude": {
       "main": [
-        [
-          {
-            "node": "Presentation Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Presentation HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Presentation Parse", "type": "main", "index": 0 }],
+        [{ "node": "Presentation HF", "type": "main", "index": 0 }]
       ]
     },
     "Presentation HF": {
       "main": [
-        [
-          {
-            "node": "Presentation Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Presentation Parse", "type": "main", "index": 0 }],
+        [{ "node": "Presentation Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Presentation Parse": {
-      "main": [
-        [
-          {
-            "node": "Presentation Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Presentation Respond", "type": "main", "index": 0 }]]
     },
+    "Presentation Build Error": {
+      "main": [[{ "node": "Presentation Respond", "type": "main", "index": 0 }]]
+    },
+
     "Game Webhook": {
-      "main": [
-        [
-          {
-            "node": "Game Build Prompt",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Game Build Prompt", "type": "main", "index": 0 }]]
     },
     "Game Build Prompt": {
       "main": [
-        [
-          {
-            "node": "Game Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Game Claude", "type": "main", "index": 0 }],
+        [{ "node": "Game Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Game Claude": {
       "main": [
-        [
-          {
-            "node": "Game Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Game HF",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Game Parse", "type": "main", "index": 0 }],
+        [{ "node": "Game HF", "type": "main", "index": 0 }]
       ]
     },
     "Game HF": {
       "main": [
-        [
-          {
-            "node": "Game Parse",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        [{ "node": "Game Parse", "type": "main", "index": 0 }],
+        [{ "node": "Game Build Error", "type": "main", "index": 0 }]
       ]
     },
     "Game Parse": {
-      "main": [
-        [
-          {
-            "node": "Game Respond",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Game Respond", "type": "main", "index": 0 }]]
+    },
+    "Game Build Error": {
+      "main": [[{ "node": "Game Respond", "type": "main", "index": 0 }]]
     }
   },
   "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
+  "settings": { "executionOrder": "v1" },
   "tags": []
 }

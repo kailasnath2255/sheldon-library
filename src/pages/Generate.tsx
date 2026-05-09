@@ -420,8 +420,9 @@ export default function Generate() {
   return (
     <div>
       <PageHero
-        title="Generate"
-        subtitle="Pick a tool, fill the brief, watch Sheldon build it. Saved to your library on success."
+        eyebrow="Generate"
+        title="Pick a tool. Build it."
+        subtitle="Fill the brief, watch Sheldon build it. Auto-saved to your library on success."
       />
 
       {!active && (
@@ -434,7 +435,7 @@ export default function Generate() {
         {/* LEFT — form */}
         <div className="lg:col-span-5 space-y-4">
           {/* Class context */}
-          <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
+          <section className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5">
             <h3 className="font-display font-bold text-navy mb-3">
               Student & Class Information
             </h3>
@@ -491,7 +492,7 @@ export default function Generate() {
           </section>
 
           {/* Tool picker */}
-          <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
+          <section className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5">
             <h3 className="font-display font-bold text-navy mb-3">
               Select Requirement
             </h3>
@@ -507,7 +508,7 @@ export default function Generate() {
                     className={`text-left p-3 rounded-xl border transition ${
                       active
                         ? `${info.bg} border-purple shadow-sm`
-                        : "bg-white border-navy/15 hover:bg-navy/5"
+                        : "bg-white dark:bg-deep-surface border-navy/15 hover:bg-navy/5"
                     }`}
                   >
                     <Icon className="w-5 h-5 text-navy mb-2" />
@@ -522,7 +523,7 @@ export default function Generate() {
 
           {/* Dynamic form */}
           {tool && (
-            <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5 animate-fade-up">
+            <section className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 p-5 animate-fade-up">
               <h3 className="font-display font-bold text-navy mb-3">
                 {TOOL_INFO[tool].label} details
               </h3>
@@ -586,7 +587,7 @@ export default function Generate() {
 
         {/* RIGHT — output */}
         <div className="lg:col-span-7">
-          <div className="bg-white rounded-2xl shadow-soft border border-navy/5 min-h-[600px] p-5 lg:p-6">
+          <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 min-h-[600px] p-5 lg:p-6">
             {error ? (
               <ErrorState
                 message="Something broke — try again."
