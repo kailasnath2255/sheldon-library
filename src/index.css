@@ -55,6 +55,20 @@
     transition: background-color 240ms cubic-bezier(.2,.8,.2,1), color 240ms cubic-bezier(.2,.8,.2,1);
   }
 
+  /* Hint browsers to render native form controls (scrollbars, selects, date pickers) using the right palette */
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+
+  /* Native <select> options — Tailwind can't reach these; force dark palette in dark mode */
+  html.dark select option {
+    background-color: #16191F;
+    color: #F2F4F7;
+  }
+  html.dark select optgroup {
+    background-color: #0B0D11;
+    color: #F2F4F7;
+  }
+
   h1, h2, h3, h4 {
     font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
     color: #0F1115;
