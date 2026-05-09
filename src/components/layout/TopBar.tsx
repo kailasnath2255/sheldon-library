@@ -32,9 +32,11 @@ export default function TopBar() {
         <div className="flex items-center justify-between gap-3">
           {/* Mobile brand */}
           <Link to="/" className="lg:hidden flex items-center gap-2">
-            <div className="w-10 h-10 rounded-full bg-white border-2 border-ss-ink-900 dark:border-white/60 overflow-hidden shadow-soft flex items-center justify-center shrink-0">
-              <img src="/logo.webp" alt="Super Sheldon" className="w-[88%] h-[88%] object-contain" />
-            </div>
+            <img
+              src="/logo.webp"
+              alt="Super Sheldon"
+              className="w-12 h-auto object-contain drop-shadow"
+            />
             <span className="font-display font-extrabold text-ss-ink-900 dark:text-white">Sheldon</span>
           </Link>
 

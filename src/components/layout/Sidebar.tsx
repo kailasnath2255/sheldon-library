@@ -19,18 +19,19 @@ const NAV = [
 export default function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 sticky top-0 h-screen p-4 gap-3 border-r-2 border-ss-ink-900 dark:border-white/50">
-      {/* Brand pill card — logo extends visibly above the card */}
+      {/* Free-standing logo — top-left, big, no circle */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
-        className="relative ss-card p-5 pt-12 mt-10"
+        className="px-1"
       >
-        {/* Free-standing logo, popping out the top — bigger + no colored box behind */}
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 rounded-full bg-white dark:bg-white border-2 border-ss-ink-900 dark:border-white/60 shadow-soft flex items-center justify-center overflow-hidden">
-          <img src="/logo.webp" alt="Super Sheldon" className="w-[88%] h-[88%] object-contain" />
-        </div>
-        <div className="text-center">
+        <img
+          src="/logo.webp"
+          alt="Super Sheldon"
+          className="w-32 h-auto object-contain drop-shadow-md"
+        />
+        <div className="mt-2 px-1">
           <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-ss-ink-500 dark:text-ss-ink-300">
             Super Sheldon
           </p>
