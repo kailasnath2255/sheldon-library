@@ -161,12 +161,18 @@ export default function QuizResults({
         </div>
       )}
 
-      {/* Per-question breakdown (used by Assessment) */}
+      {/* Per-question breakdown */}
       {data.perQuestion && data.perQuestion.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5 space-y-3">
-          <h4 className="font-display text-lg font-bold text-navy">
-            Question by question
-          </h4>
+        <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft ss-edge p-5 space-y-3">
+          <div>
+            <p className="eyebrow">Review</p>
+            <h4 className="font-display text-2xl font-extrabold text-ss-ink-900 dark:text-white mt-1.5">
+              Question by question
+            </h4>
+            <p className="text-sm text-ss-ink-500 dark:text-ss-ink-300 mt-1">
+              See every wrong answer with the correct one and a quick explanation.
+            </p>
+          </div>
           {data.perQuestion.map((q, i) => (
             <div
               key={i}

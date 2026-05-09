@@ -8,10 +8,40 @@
   :root {
     --ss-text: 15 17 21;       /* #0F1115 */
     --ss-bg:   255 248 242;    /* #FFF8F2 */
+    /* Generator card pastel surfaces — light-mode hex */
+    --card-diagnostic:   214 242 224;  /* #D6F2E0 mint */
+    --card-assessment:   255 224 204;  /* #FFE0CC peach */
+    --card-worksheet:    255 244 194;  /* #FFF4C2 yellow */
+    --card-lessonplan:   229 222 255;  /* #E5DEFF lavender */
+    --card-presentation: 220 238 255;  /* #DCEEFF sky */
+    --card-games:        255 224 232;  /* #FFE0E8 rose */
+    /* Soft surfaces — light hex */
+    --soft-lavender: 229 222 255; /* #E5DEFF */
+    --soft-peach:    255 224 204; /* #FFE0CC */
+    --soft-mint:     214 242 224; /* #D6F2E0 */
+    --soft-rose:     255 224 232; /* #FFE0E8 */
+    --soft-sky:      220 238 255; /* #DCEEFF */
+    --soft-cream:    255 241 230; /* #FFF1E6 */
+    --soft-yellow:   255 244 194; /* #FFF4C2 */
   }
   html.dark {
     --ss-text: 242 244 247;    /* #F2F4F7 */
     --ss-bg:   11 13 17;       /* #0B0D11 */
+    /* Generator card surfaces — dark-mode richer/deeper variants */
+    --card-diagnostic:    20 53 36;    /* #143524 deep mint */
+    --card-assessment:    61 37 21;    /* #3D2515 deep peach */
+    --card-worksheet:     58 40 16;    /* #3A2810 deep cream */
+    --card-lessonplan:    45 27 78;    /* #2D1B4E deep lavender */
+    --card-presentation:  14 42 74;    /* #0E2A4A deep sky */
+    --card-games:         63 27 42;    /* #3F1B2A deep rose */
+    /* Soft surfaces — dark variants (deeper saturated) */
+    --soft-lavender: 45 27 78;     /* deep lavender */
+    --soft-peach:    61 37 21;     /* deep peach */
+    --soft-mint:     20 53 36;     /* deep mint */
+    --soft-rose:     63 27 42;     /* deep rose */
+    --soft-sky:      14 42 74;     /* deep sky */
+    --soft-cream:    58 40 16;     /* deep cream */
+    --soft-yellow:   58 40 16;     /* deep cream as yellow */
   }
 
   html, body, #root { height: 100%; }

@@ -32,10 +32,10 @@ export default function TopBar() {
         <div className="flex items-center justify-between gap-3">
           {/* Mobile brand */}
           <Link to="/" className="lg:hidden flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-soft-lavender dark:bg-deep-lavender flex items-center justify-center">
-              <span className="font-display font-extrabold text-ss-orange-500 text-base">S</span>
+            <div className="w-9 h-9 rounded-xl bg-soft-cream dark:bg-deep-cream overflow-hidden border-2 border-ss-ink-900 dark:border-white/50 flex items-center justify-center">
+              <img src="/logo.webp" alt="Super Sheldon" className="w-full h-full object-contain p-0.5" />
             </div>
-            <span className="font-display font-extrabold text-ss-ink-900 dark:text-white">Sheldon's</span>
+            <span className="font-display font-extrabold text-ss-ink-900 dark:text-white">Sheldon</span>
           </Link>
 
           {/* Active Student chip */}

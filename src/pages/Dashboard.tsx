@@ -48,7 +48,7 @@ export default function Dashboard() {
           <p className="eyebrow">Dashboard</p>
 
           <h1 className="ss-display mt-5 text-4xl md:text-6xl text-ss-ink-900 dark:text-white">
-            Hi, let's build a class-ready plan.
+            Hello Teacher, let's build a class-ready plan.
           </h1>
 
           <p className="mt-5 max-w-xl text-base md:text-lg text-ss-ink-700 dark:text-ss-ink-200 leading-relaxed">

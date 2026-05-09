@@ -154,7 +154,7 @@ export default function Generate() {
   // Form states
   const [diagnosticForm, setDiagnosticForm] = useState<DiagnosticFormValues>({
     goal: "Curriculum Alignment",
-    numQuestions: 10,
+    numQuestions: 20,
   });
   const [assessmentForm, setAssessmentForm] = useState<AssessmentFormValues>({
     topics: [],
@@ -584,10 +584,22 @@ export default function Generate() {
             <ModelSelector value={model} onChange={setModel} compact tool={tool} />
           )}
 
+          {/* Helper hint when Generate is disabled, so users know what's missing */}
+          {tool && active && !canGenerate && !loading && (
+            <div className="bg-soft-yellow dark:bg-deep-cream/40 border-2 border-ss-ink-900 dark:border-white/50 rounded-2xl px-4 py-3 text-sm text-ss-ink-900 dark:text-white">
+              <span className="font-bold">Almost there — </span>
+              {tool === "assessment" && "add at least one topic above (press Enter after typing) to enable Generate."}
+              {tool === "worksheet" && "add a topic and pick at least one section to enable Generate."}
+              {tool === "lessonplan" && "add a topic to enable Generate."}
+              {tool === "presentation" && "add a topic to enable Generate."}
+              {tool === "games" && "add a topic to enable Generate."}
+            </div>
+          )}
+
           <button
             onClick={handleGenerate}
             disabled={!canGenerate || loading}
-            className="w-full inline-flex items-center justify-center gap-2 px-5 py-4 rounded-xl bg-purple text-white font-bold hover:bg-purple/90 active:scale-[0.98] disabled:opacity-30 transition shadow-sm"
+            className="w-full inline-flex items-center justify-center gap-2 px-5 py-4 rounded-2xl bg-ss-orange-500 text-white font-bold border-2 border-ss-ink-900 dark:border-white/50 hover:bg-ss-orange-600 hover:shadow-brand active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition"
           >
             {loading ? (
               <>Sheldon is thinking…</>

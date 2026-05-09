@@ -89,7 +89,7 @@ export default function PresentationRenderer({
 
       <div
         ref={containerRef}
-        className="relative bg-navy/5 rounded-3xl border border-navy/10 overflow-hidden"
+        className="relative bg-soft-cream dark:bg-deep-cream/30 rounded-3xl ss-edge overflow-hidden"
         style={{ aspectRatio: "16 / 9", minHeight: 360 }}
       >
         <AnimatePresence mode="wait">
@@ -104,6 +104,14 @@ export default function PresentationRenderer({
             {renderSlide(slide)}
           </motion.div>
         </AnimatePresence>
+
+        {/* Super Sheldon branding watermark */}
+        <div className="absolute top-3 left-3 flex items-center gap-2 bg-white/90 dark:bg-deep-surface/90 backdrop-blur rounded-full pl-1.5 pr-3 py-1 border-2 border-ss-ink-900 dark:border-white/40 shadow-soft pointer-events-none">
+          <img src="/logo.webp" alt="" className="w-6 h-6 rounded-full object-contain" />
+          <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-ss-ink-900 dark:text-white">
+            Super Sheldon
+          </span>
+        </div>
 
         {/* Controls */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-white/95 backdrop-blur rounded-full shadow-lg px-3 py-2 flex items-center gap-2">

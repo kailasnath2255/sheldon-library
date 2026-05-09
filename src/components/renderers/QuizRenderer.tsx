@@ -100,7 +100,7 @@ export default function QuizRenderer({
       score,
       totalQuestions: total,
       correctCount,
-      perQuestion: mode === "assessment" ? perQuestion : undefined,
+      perQuestion,
       analysis,
     };
     setResultsData(data);

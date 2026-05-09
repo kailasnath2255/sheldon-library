@@ -27,12 +27,12 @@ export default function Sidebar() {
         className="ss-card p-5"
       >
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-soft-lavender dark:bg-deep-lavender flex items-center justify-center shrink-0">
-            <span className="font-display font-extrabold text-ss-orange-500 text-lg">S</span>
+          <div className="w-12 h-12 rounded-2xl bg-soft-cream dark:bg-deep-cream flex items-center justify-center shrink-0 overflow-hidden border-2 border-ss-ink-900 dark:border-white/50">
+            <img src="/logo.webp" alt="Super Sheldon" className="w-full h-full object-contain p-1" />
           </div>
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-ss-ink-500 dark:text-ss-ink-300">
-              Sheldon's
+              Super Sheldon
             </p>
             <h1 className="font-display font-extrabold text-xl leading-tight text-ss-ink-900 dark:text-white">
               Library

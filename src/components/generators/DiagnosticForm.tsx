@@ -55,8 +55,8 @@ export default function DiagnosticForm({
         <div className="flex items-center gap-3">
           <input
             type="range"
-            min={5}
-            max={20}
+            min={10}
+            max={30}
             step={1}
             value={values.numQuestions}
             onChange={(e) =>

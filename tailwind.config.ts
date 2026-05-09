@@ -62,15 +62,15 @@ const config: Config = {
           },
         },
 
-        // ── Soft pastel surfaces (used for the screenshot-style hero blocks)
+        // ── Soft pastel surfaces — theme-switching via CSS vars
         soft: {
-          lavender: "#E5DEFF",
-          peach: "#FFE0CC",
-          mint: "#D6F2E0",
-          rose: "#FFE0E8",
-          sky: "#DCEEFF",
-          cream: "#FFF1E6",
-          yellow: "#FFF4C2",
+          lavender: "rgb(var(--soft-lavender) / <alpha-value>)",
+          peach:    "rgb(var(--soft-peach) / <alpha-value>)",
+          mint:     "rgb(var(--soft-mint) / <alpha-value>)",
+          rose:     "rgb(var(--soft-rose) / <alpha-value>)",
+          sky:      "rgb(var(--soft-sky) / <alpha-value>)",
+          cream:    "rgb(var(--soft-cream) / <alpha-value>)",
+          yellow:   "rgb(var(--soft-yellow) / <alpha-value>)",
         },
 
         // ── Dark-mode equivalents (deeper, richer)
@@ -87,12 +87,12 @@ const config: Config = {
         },
 
         card: {
-          diagnostic: "#D6F2E0",
-          assessment: "#FFE0CC",
-          worksheet: "#FFF4C2",
-          lessonplan: "#E5DEFF",
-          presentation: "#DCEEFF",
-          games: "#FFE0E8",
+          diagnostic:   "rgb(var(--card-diagnostic) / <alpha-value>)",
+          assessment:   "rgb(var(--card-assessment) / <alpha-value>)",
+          worksheet:    "rgb(var(--card-worksheet) / <alpha-value>)",
+          lessonplan:   "rgb(var(--card-lessonplan) / <alpha-value>)",
+          presentation: "rgb(var(--card-presentation) / <alpha-value>)",
+          games:        "rgb(var(--card-games) / <alpha-value>)",
         },
       },
       fontFamily: {

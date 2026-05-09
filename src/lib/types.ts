@@ -52,6 +52,7 @@ export type DiagnosticQuestion = {
   options: string[];
   correctIndex: number;
   skill: string;
+  explanation?: string;
 };
 
 export type DiagnosticResponse = {
