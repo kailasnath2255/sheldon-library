@@ -34,7 +34,7 @@ import PresentationForm, {
 } from "@/components/generators/PresentationForm";
 import GameForm, { type GameFormValues } from "@/components/generators/GameForm";
 import ModelSelector from "@/components/generators/ModelSelector";
-import { DEFAULT_MODEL_ID } from "@/lib/models";
+import { DEFAULT_MODEL_ID, modelToPayload, modelsForTool } from "@/lib/models";
 
 import QuizRenderer from "@/components/renderers/QuizRenderer";
 import WorksheetRenderer from "@/components/renderers/WorksheetRenderer";
@@ -141,6 +141,13 @@ export default function Generate() {
     }
   }, [active?.id]); // eslint-disable-line
 
+  // If the current model isn't allowed for the newly selected tool, snap back to Claude.
+  useEffect(() => {
+    if (!tool) return;
+    const allowed = modelsForTool(tool).map((m) => m.id);
+    if (!allowed.includes(model)) setModel(DEFAULT_MODEL_ID);
+  }, [tool]); // eslint-disable-line
+
   // Form states
   const [diagnosticForm, setDiagnosticForm] = useState<DiagnosticFormValues>({
     goal: "Curriculum Alignment",
@@ -231,7 +238,7 @@ export default function Generate() {
             subject,
             goal: diagnosticForm.goal,
             numQuestions: diagnosticForm.numQuestions,
-            model: model || undefined,
+            ...modelToPayload(model),
           });
           result = { type: "diagnostic", data };
           title = `Diagnostic · Grade ${grade - 1} ${subject} review`;
@@ -248,7 +255,7 @@ export default function Generate() {
             difficulty: assessmentForm.difficulty,
             grade,
             subject,
-            model: model || undefined,
+            ...modelToPayload(model),
           });
           result = { type: "assessment", data };
           title = `Assessment · ${assessmentForm.topics.join(", ") || subject}`;
@@ -262,7 +269,7 @@ export default function Generate() {
             sections: worksheetForm.sections,
             grade,
             subject,
-            model: model || undefined,
+            ...modelToPayload(model),
           });
           result = { type: "worksheet", data };
           title = `Worksheet · ${worksheetForm.topic}`;
@@ -275,7 +282,7 @@ export default function Generate() {
             duration: lessonPlanForm.duration,
             grade,
             subject,
-            model: model || undefined,
+            ...modelToPayload(model),
           });
           result = { type: "lessonplan", data };
           title = `Lesson Plan · ${lessonPlanForm.topic} (${lessonPlanForm.duration}m)`;
@@ -289,7 +296,7 @@ export default function Generate() {
             difficulty: presentationForm.difficulty,
             grade,
             subject,
-            model: model || undefined,
+            ...modelToPayload(model),
           });
           result = { type: "presentation", data };
           title = `Presentation · ${presentationForm.topic}`;
@@ -302,7 +309,7 @@ export default function Generate() {
             gameStyle: gameForm.gameStyle,
             grade,
             subject,
-            model: model || undefined,
+            ...modelToPayload(model),
           });
           result = { type: "games", data };
           title = `Game · ${gameForm.topic} (${gameForm.gameStyle})`;
@@ -483,9 +490,6 @@ export default function Generate() {
             </div>
           </section>
 
-          {/* Model picker */}
-          <ModelSelector value={model} onChange={setModel} />
-
           {/* Tool picker */}
           <section className="bg-white rounded-2xl shadow-soft border border-navy/5 p-5">
             <h3 className="font-display font-bold text-navy mb-3">
@@ -556,6 +560,11 @@ export default function Generate() {
                 <GameForm values={gameForm} onChange={setGameForm} />
               )}
             </section>
+          )}
+
+          {/* Model picker — appears after a tool is chosen, just above Generate */}
+          {tool && (
+            <ModelSelector value={model} onChange={setModel} compact tool={tool} />
           )}
 
           <button
