@@ -711,6 +711,64 @@ body {
 .fact-source { color: var(--primary); }
 .thinking-list li strong { color: var(--primary); }
 .thinking-conclusion { color: var(--secondary); }
+
+/* ── Overflow safety net ───────────────────────────────────────
+   AI sometimes emits very long question text, options, definitions
+   or examples that would otherwise force horizontal scroll or punch
+   through card borders. This block guarantees every text-bearing
+   surface wraps cleanly and stays inside its container. */
+.display-title,
+.subtitle,
+.body-text,
+.concept-name, .concept-formula, .concept-example,
+.concept-points li,
+.example-text,
+.quiz-prompt, .quiz-feedback,
+.bullet-list li, .bullet-list li span,
+.fact-card p, .fact-quote,
+.mnemonic-title, .mnemonic-body,
+.thinking-sentence, .thinking-list li, .thinking-conclusion,
+.fill-sentence, .blank-slot,
+.drag-item, .drop-zone-title,
+.story-text, .takeaway-card p,
+.mascot-bubble {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Quiz / fill-blank option buttons can carry long answer text.
+   Allow them to wrap and stretch instead of overflowing. */
+.quiz-options .btn,
+.word-options .btn {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.quiz-options.stacked .btn { text-align: left; }
+
+/* Flex children with text need min-width:0 so they shrink correctly
+   inside their flex parent (otherwise long text forces overflow). */
+.example-card > *,
+.mascot-block > * { min-width: 0; }
+
+/* Mascot bubble caps at a height ratio of its width so a chatty AI
+   doesn't push the bubble off the bottom of the slide. */
+.mascot-bubble {
+  max-height: 14em;
+  overflow-y: auto;
+}
+
+/* Two-column compare must NOT push its columns wider than the parent
+   when one side has way more text than the other. */
+.concept-pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+/* Drag-item / drop-zone columns can be packed with long text. */
+.dropzone-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.drag-item { max-width: 100%; }
 </style>
 </head>
 <body>

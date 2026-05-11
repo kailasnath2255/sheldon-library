@@ -533,6 +533,46 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
   .reveal-block, .reveal-text { max-height: none !important; opacity: 1 !important; padding: .45rem .75rem !important; }
   .reveal-btn { display: none !important; }
 }
+
+/* ── Overflow safety net ───────────────────────────────────────
+   The academic stage is fixed 16:9 with overflow: hidden, so a chatty
+   AI response would otherwise get silently clipped. Let each slide
+   scroll vertically if it overruns the frame, and wrap all text
+   surfaces cleanly. */
+.slide { overflow-y: auto; overflow-x: hidden; }
+.slide::-webkit-scrollbar { width: 6px; }
+.slide::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 3px; }
+
+h1, h2, h3, h4, p,
+.card, .card *,
+.tell-card, .tell-card *,
+.show-card, .show-card *,
+.example-card, .example-card *,
+.q-text, .q-option, .q-feedback,
+.checklist-item,
+.burger-layer,
+.brainstorm-row > div,
+.task-card,
+.takeaway-item, .takeaway-item p,
+.tip-bar,
+.compare > * {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+  min-width: 0;
+}
+
+/* Multi-column grids must not force their columns wider than parent
+   when one cell has long content. */
+.compare,
+.brainstorm-row,
+.example-list .ex-row,
+.q-options { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+.q-options { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.compare { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+/* Quiz option buttons should wrap, not overflow */
+.q-option { white-space: normal; line-height: 1.4; }
 </style>
 </head>
 <body>
