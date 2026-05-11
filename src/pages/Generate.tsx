@@ -48,6 +48,7 @@ import TemplatedGameRenderer from "@/components/renderers/TemplatedGameRenderer"
 import TemplatedWorksheetRenderer from "@/components/renderers/TemplatedWorksheetRenderer";
 import TemplatedLessonPlanRenderer from "@/components/renderers/TemplatedLessonPlanRenderer";
 import TemplatedQuizRenderer from "@/components/renderers/TemplatedQuizRenderer";
+import { validateTemplated } from "@/lib/content-validator";
 
 import {
   analyzeDiagnostic,
@@ -325,6 +326,21 @@ export default function Generate() {
         }
         default:
           return;
+      }
+
+      // Validate content correctness (catches malformed payloads early)
+      const validation = validateTemplated(result.data);
+      if (!validation.ok) {
+        setError(
+          "Generation succeeded but the content failed validation:\n• " +
+            validation.errors.join("\n• ") +
+            "\n\nThis usually means the AI returned a malformed payload. Retry — Sheldon will regenerate from scratch."
+        );
+        toast.error("Generation failed validation — retry");
+        return;
+      }
+      if (validation.warnings.length) {
+        toast(`Generated with ${validation.warnings.length} warning${validation.warnings.length > 1 ? "s" : ""}: ${validation.warnings[0]}`, { icon: "⚠️" });
       }
 
       setOutput(result);

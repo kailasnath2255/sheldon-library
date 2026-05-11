@@ -176,6 +176,7 @@ export const generateDiagnostic = (p: DiagnosticPayload) =>
       ...MOCK_DIAGNOSTIC,
       questions: MOCK_DIAGNOSTIC.questions.slice(0, p.numQuestions || 10),
     }),
+    timeoutMs: 180_000,
   });
 
 export type AnalyzePayload = {
@@ -261,6 +262,7 @@ export const generateWorksheet = (p: WorksheetPayload) =>
         },
       };
     },
+    timeoutMs: 180_000,
   });
 
 export type LessonPlanPayload = {
@@ -281,6 +283,7 @@ export const generateLessonPlan = (p: LessonPlanPayload) =>
         topic: p.topic || MOCK_LESSON_PLAN.json.topic,
       },
     }),
+    timeoutMs: 180_000,
   });
 
 export type PresentationPayload = {
