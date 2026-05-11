@@ -206,6 +206,9 @@ export default function Generate() {
   // the Groq grade-level check so we can keep that one a soft warning while
   // blocking on the unambiguous mismatch case.
   const [topicHardBlock, setTopicHardBlock] = useState<{ reason: string } | null>(null);
+  // Teacher can force-override the hard block. Resets whenever the topic
+  // or subject changes so the override is always a conscious decision.
+  const [topicOverride, setTopicOverride] = useState<boolean>(false);
 
   // Compute the current topic for whatever tool is active. Used to drive
   // the background topic-vs-subject-vs-grade validator below.
@@ -227,6 +230,7 @@ export default function Generate() {
   useEffect(() => {
     setTopicValidation(null);
     setTopicHardBlock(null);
+    setTopicOverride(false); // Override always resets when inputs change.
     if (!tool || !currentTopic || currentTopic.length < 3 || !subject) return;
 
     // Layer 1 — instant heuristic. Catches clear subject mismatches
@@ -264,7 +268,7 @@ export default function Generate() {
   };
 
   const canGenerate =
-    !topicHardBlock &&
+    (!topicHardBlock || topicOverride) &&
     !!active &&
     !!tool &&
     (tool === "diagnostic"
@@ -669,8 +673,8 @@ export default function Generate() {
           )}
 
           {/* HARD BLOCK — clear subject mismatch (e.g. "python" in Maths).
-              Generate is disabled until the teacher fixes it. */}
-          {tool && active && topicHardBlock && currentTopic && (
+              Generate is disabled until the teacher fixes it OR overrides. */}
+          {tool && active && topicHardBlock && currentTopic && !topicOverride && (
             <div className="bg-coral/10 dark:bg-coral/15 border-2 border-coral rounded-2xl px-4 py-3 text-sm">
               <p className="font-bold text-coral mb-1">
                 Topic doesn't match the subject
@@ -678,9 +682,33 @@ export default function Generate() {
               <p className="text-ss-ink-900 dark:text-ss-ink-100 leading-relaxed">
                 {topicHardBlock.reason}
               </p>
-              <p className="text-[11px] text-ss-ink-500 dark:text-ss-ink-300 mt-2">
+              <p className="text-[11px] text-ss-ink-500 dark:text-ss-ink-300 mt-2 mb-3">
                 Sheldon won't generate until this is fixed — otherwise you'd end up with content that doesn't match what you asked for.
               </p>
+              <button
+                type="button"
+                onClick={() => setTopicOverride(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-coral hover:text-coral/80 underline underline-offset-2"
+              >
+                Override — I know what I'm doing
+              </button>
+            </div>
+          )}
+
+          {/* Override active — teacher chose to bypass the block */}
+          {tool && active && topicHardBlock && currentTopic && topicOverride && (
+            <div className="bg-soft-yellow dark:bg-deep-cream/40 border-2 border-ss-ink-900 dark:border-white/50 rounded-2xl px-4 py-3 text-sm flex items-center justify-between gap-3">
+              <p className="text-ss-ink-900 dark:text-white">
+                <span className="font-bold">Override active — </span>
+                generating "{currentTopic}" for {subject}. The result may not match the subject.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTopicOverride(false)}
+                className="shrink-0 text-xs font-bold text-ss-ink-900 dark:text-white underline underline-offset-2"
+              >
+                Undo
+              </button>
             </div>
           )}
 
