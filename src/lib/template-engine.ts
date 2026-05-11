@@ -120,12 +120,18 @@ const TEMPLATE_URLS: Record<string, string> = {
   "quiz-live":             "/templates/quiz-live.html",
 };
 
+// Bump this version when a template HTML changes so the browser cache
+// doesn't serve a stale copy. Static assets under /public are not
+// fingerprinted by Vite, so without a cache-buster the browser will
+// keep serving the previous version for hours/days.
+const TEMPLATE_VERSION = "5";
+
 const _templateCache = new Map<string, string>();
 export async function loadTemplate(name: string): Promise<string> {
   if (_templateCache.has(name)) return _templateCache.get(name)!;
   const url = TEMPLATE_URLS[name];
   if (!url) throw new Error(`Unknown template: ${name}`);
-  const res = await fetch(url);
+  const res = await fetch(`${url}?v=${TEMPLATE_VERSION}`, { cache: "no-cache" });
   if (!res.ok) throw new Error(`Failed to load template ${name}: ${res.status}`);
   const text = await res.text();
   _templateCache.set(name, text);
