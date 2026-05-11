@@ -202,6 +202,10 @@ export default function Generate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [topicValidation, setTopicValidation] = useState<TopicValidation | null>(null);
+  // Hard-block from the instant heuristic (wrong subject). Separate from
+  // the Groq grade-level check so we can keep that one a soft warning while
+  // blocking on the unambiguous mismatch case.
+  const [topicHardBlock, setTopicHardBlock] = useState<{ reason: string } | null>(null);
 
   // Compute the current topic for whatever tool is active. Used to drive
   // the background topic-vs-subject-vs-grade validator below.
@@ -222,16 +226,19 @@ export default function Generate() {
   //    Grade 11 Maths). Fails open — never blocks generation.
   useEffect(() => {
     setTopicValidation(null);
+    setTopicHardBlock(null);
     if (!tool || !currentTopic || currentTopic.length < 3 || !subject) return;
 
-    // Layer 1 — instant heuristic
+    // Layer 1 — instant heuristic. Catches clear subject mismatches
+    // (e.g. "python" entered as a Maths topic). HARD-BLOCKS generation —
+    // a mismatch here would silently produce wrong-subject content.
     const quick = quickTopicCheck(currentTopic, subject);
     if (!quick.ok) {
-      setTopicValidation({ ok: false, reason: quick.reason });
+      setTopicHardBlock({ reason: quick.reason ?? "Topic doesn't match the student's subject." });
       return; // Heuristic was confident; skip the LLM call.
     }
 
-    // Layer 2 — debounced Groq grade check
+    // Layer 2 — debounced Groq grade-level check. Stays a soft advisory.
     const handle = setTimeout(() => {
       validateTopic({
         topic: currentTopic,
@@ -257,6 +264,7 @@ export default function Generate() {
   };
 
   const canGenerate =
+    !topicHardBlock &&
     !!active &&
     !!tool &&
     (tool === "diagnostic"
@@ -660,8 +668,24 @@ export default function Generate() {
             </div>
           )}
 
-          {/* Topic validation hint — soft warning, doesn't block Generate */}
-          {tool && active && topicValidation && !topicValidation.ok && currentTopic && (
+          {/* HARD BLOCK — clear subject mismatch (e.g. "python" in Maths).
+              Generate is disabled until the teacher fixes it. */}
+          {tool && active && topicHardBlock && currentTopic && (
+            <div className="bg-coral/10 dark:bg-coral/15 border-2 border-coral rounded-2xl px-4 py-3 text-sm">
+              <p className="font-bold text-coral mb-1">
+                Topic doesn't match the subject
+              </p>
+              <p className="text-ss-ink-900 dark:text-ss-ink-100 leading-relaxed">
+                {topicHardBlock.reason}
+              </p>
+              <p className="text-[11px] text-ss-ink-500 dark:text-ss-ink-300 mt-2">
+                Sheldon won't generate until this is fixed — otherwise you'd end up with content that doesn't match what you asked for.
+              </p>
+            </div>
+          )}
+
+          {/* SOFT WARNING — Groq grade-level check (only when no hard block) */}
+          {tool && active && !topicHardBlock && topicValidation && !topicValidation.ok && currentTopic && (
             <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-600/60 rounded-2xl px-4 py-3 text-sm">
               <p className="font-bold text-amber-900 dark:text-amber-200 mb-1">
                 Hmm — "{currentTopic}" might not fit Grade {grade} {subject}.
