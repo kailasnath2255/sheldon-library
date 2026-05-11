@@ -1183,6 +1183,230 @@
         1480
       ],
       "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('Diagnostic Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Diagnostic Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-001",
+      "name": "Diagnostic Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        320
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('Analyze Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Analyze Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-002",
+      "name": "Analyze Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        520
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('Assessment Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Assessment Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-003",
+      "name": "Assessment Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        720
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('Worksheet Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Worksheet Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-004",
+      "name": "Worksheet Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        920
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('LessonPlan Build Prompt').first().json.system, messages: [{ role: 'user', content: $('LessonPlan Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-005",
+      "name": "LessonPlan Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        1120
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('Presentation Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Presentation Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-006",
+      "name": "Presentation Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        1340
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 16000, system: $('Game Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Game Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "retry-007",
+      "name": "Game Claude Retry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1040,
+        1560
+      ],
+      "onError": "continueErrorOutput"
     }
   ],
   "connections": {
@@ -1806,7 +2030,7 @@
         ],
         [
           {
-            "node": "Diagnostic Build Error",
+            "node": "Diagnostic Claude Retry",
             "type": "main",
             "index": 0
           }
@@ -1824,7 +2048,7 @@
         ],
         [
           {
-            "node": "Analyze Build Error",
+            "node": "Analyze Claude Retry",
             "type": "main",
             "index": 0
           }
@@ -1842,7 +2066,7 @@
         ],
         [
           {
-            "node": "Assessment Build Error",
+            "node": "Assessment Claude Retry",
             "type": "main",
             "index": 0
           }
@@ -1860,7 +2084,7 @@
         ],
         [
           {
-            "node": "Worksheet Build Error",
+            "node": "Worksheet Claude Retry",
             "type": "main",
             "index": 0
           }
@@ -1878,7 +2102,7 @@
         ],
         [
           {
-            "node": "LessonPlan Build Error",
+            "node": "LessonPlan Claude Retry",
             "type": "main",
             "index": 0
           }
@@ -1896,7 +2120,7 @@
         ],
         [
           {
-            "node": "Presentation Build Error",
+            "node": "Presentation Claude Retry",
             "type": "main",
             "index": 0
           }
@@ -1904,6 +2128,132 @@
       ]
     },
     "Game Groq": {
+      "main": [
+        [
+          {
+            "node": "Game Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Game Claude Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Diagnostic Claude Retry": {
+      "main": [
+        [
+          {
+            "node": "Diagnostic Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Diagnostic Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Claude Retry": {
+      "main": [
+        [
+          {
+            "node": "Analyze Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analyze Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assessment Claude Retry": {
+      "main": [
+        [
+          {
+            "node": "Assessment Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assessment Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Worksheet Claude Retry": {
+      "main": [
+        [
+          {
+            "node": "Worksheet Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Worksheet Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LessonPlan Claude Retry": {
+      "main": [
+        [
+          {
+            "node": "LessonPlan Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LessonPlan Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Presentation Claude Retry": {
+      "main": [
+        [
+          {
+            "node": "Presentation Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Presentation Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Game Claude Retry": {
       "main": [
         [
           {
