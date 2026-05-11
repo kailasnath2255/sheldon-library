@@ -14,8 +14,9 @@ import toast from "react-hot-toast";
 import PageHero from "@/components/shared/PageHero";
 import EmptyState from "@/components/shared/EmptyState";
 import LoadingState from "@/components/shared/LoadingState";
-import ErrorState from "@/components/shared/ErrorState";
 import OwlMascot from "@/components/shared/OwlMascot";
+import { Link } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 
 import DiagnosticForm, {
   type DiagnosticFormValues,
@@ -344,9 +345,9 @@ export default function Generate() {
       }
     } catch (_e) {
       // Generation failed across all backend fallbacks. The full error
-      // is captured in the event log (see /admin) — the teacher sees
-      // only a friendly generic message with no scary details.
-      setError("Sheldon couldn't finish that one. Tap Retry, or check /admin if it keeps happening.");
+      // is captured in the event log — the teacher sees only a friendly
+      // panel inviting them to retry or browse already-generated work.
+      setError("__failed__");
     } finally {
       setLoading(false);
     }
@@ -629,10 +630,33 @@ export default function Generate() {
         <div className="lg:col-span-7">
           <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 min-h-[600px] p-5 lg:p-6">
             {error ? (
-              <ErrorState
-                message={error}
-                onRetry={handleGenerate}
-              />
+              <div className="flex flex-col items-center justify-center text-center py-10 px-6 animate-fade-up">
+                <div className="animate-float mb-2">
+                  <OwlMascot size={120} />
+                </div>
+                <h3 className="font-display font-extrabold text-2xl text-ss-ink-900 dark:text-white mt-4">
+                  Sheldon Library couldn't fetch that one.
+                </h3>
+                <p className="text-sm text-ss-ink-500 dark:text-ss-ink-300 mt-2 max-w-md leading-relaxed">
+                  We're working on it. Meanwhile, you can explore the{" "}
+                  <span className="font-semibold text-ss-ink-900 dark:text-white">Library</span>{" "}
+                  to find already-generated content for this student.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+                  <button
+                    onClick={handleGenerate}
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white dark:bg-deep-surface text-ss-ink-900 dark:text-white font-bold border-2 border-ss-ink-900 dark:border-white/50 hover:-translate-y-0.5 hover:shadow-soft transition"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Try again
+                  </button>
+                  <Link
+                    to="/library"
+                    className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-ss-orange-500 text-white font-bold border-2 border-ss-ink-900 dark:border-white/50 hover:bg-ss-orange-600 hover:shadow-brand transition"
+                  >
+                    <BookOpen className="w-4 h-4" /> Browse Library
+                  </Link>
+                </div>
+              </div>
             ) : loading ? (
               <LoadingState />
             ) : output ? (
