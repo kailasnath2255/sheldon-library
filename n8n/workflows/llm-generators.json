@@ -938,6 +938,251 @@
         1000,
         1340
       ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('Diagnostic Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-001",
+      "name": "Diagnostic Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        240
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('Analyze Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-002",
+      "name": "Analyze Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        440
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('Assessment Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-003",
+      "name": "Assessment Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        640
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('Worksheet Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-004",
+      "name": "Worksheet Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        840
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('LessonPlan Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-005",
+      "name": "LessonPlan Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        1040
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('Presentation Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-006",
+      "name": "Presentation Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        1260
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify((() => { const u = $('Game Build Prompt').first().json; const hf = (u._payload && u._payload.hfModel) || ''; const MAP = { 'meta-llama/Llama-3.3-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Meta-Llama-3.1-70B-Instruct': 'llama-3.3-70b-versatile', 'meta-llama/Llama-3.1-8B-Instruct': 'llama-3.1-8b-instant', 'Qwen/Qwen2.5-72B-Instruct': 'llama-3.3-70b-versatile', 'mistralai/Mistral-7B-Instruct-v0.3': 'llama-3.1-8b-instant' }; const model = MAP[hf] || 'llama-3.3-70b-versatile'; return { model, messages: [{ role: 'system', content: u.system }, { role: 'user', content: u.user }], max_tokens: 4000, temperature: 0.3 }; })()) }}",
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "groq-007",
+      "name": "Game Groq",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        1480
+      ],
+      "onError": "continueErrorOutput"
     }
   ],
   "connections": {
@@ -999,7 +1244,7 @@
         ],
         [
           {
-            "node": "Diagnostic Build Error",
+            "node": "Diagnostic Groq",
             "type": "main",
             "index": 0
           }
@@ -1086,7 +1331,7 @@
         ],
         [
           {
-            "node": "Analyze Build Error",
+            "node": "Analyze Groq",
             "type": "main",
             "index": 0
           }
@@ -1173,7 +1418,7 @@
         ],
         [
           {
-            "node": "Assessment Build Error",
+            "node": "Assessment Groq",
             "type": "main",
             "index": 0
           }
@@ -1260,7 +1505,7 @@
         ],
         [
           {
-            "node": "Worksheet Build Error",
+            "node": "Worksheet Groq",
             "type": "main",
             "index": 0
           }
@@ -1347,7 +1592,7 @@
         ],
         [
           {
-            "node": "LessonPlan Build Error",
+            "node": "LessonPlan Groq",
             "type": "main",
             "index": 0
           }
@@ -1434,7 +1679,7 @@
         ],
         [
           {
-            "node": "Presentation Build Error",
+            "node": "Presentation Groq",
             "type": "main",
             "index": 0
           }
@@ -1521,7 +1766,7 @@
         ],
         [
           {
-            "node": "Game Build Error",
+            "node": "Game Groq",
             "type": "main",
             "index": 0
           }
@@ -1544,6 +1789,132 @@
         [
           {
             "node": "Game Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Diagnostic Groq": {
+      "main": [
+        [
+          {
+            "node": "Diagnostic Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Diagnostic Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Groq": {
+      "main": [
+        [
+          {
+            "node": "Analyze Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analyze Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assessment Groq": {
+      "main": [
+        [
+          {
+            "node": "Assessment Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Assessment Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Worksheet Groq": {
+      "main": [
+        [
+          {
+            "node": "Worksheet Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Worksheet Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LessonPlan Groq": {
+      "main": [
+        [
+          {
+            "node": "LessonPlan Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LessonPlan Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Presentation Groq": {
+      "main": [
+        [
+          {
+            "node": "Presentation Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Presentation Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Game Groq": {
+      "main": [
+        [
+          {
+            "node": "Game Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Game Build Error",
             "type": "main",
             "index": 0
           }
