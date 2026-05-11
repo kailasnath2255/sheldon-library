@@ -67,7 +67,7 @@ export default function TemplatedQuizRenderer({ data }: { data: TemplatedQuiz })
       {busy ? (
         <div className="flex-1 flex items-center justify-center text-ss-ink-500 dark:text-ss-ink-300 text-sm">Building quiz…</div>
       ) : (
-        <iframe ref={iframeRef} srcDoc={html} title={data.title} className="flex-1 w-full bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-fullscreen allow-downloads" />
+        <iframe ref={iframeRef} srcDoc={html} title={data.title} className="flex-1 w-full bg-white" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads" allowFullScreen />
       )}
     </div>
   );

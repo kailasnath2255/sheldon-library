@@ -83,7 +83,7 @@ export default function TemplatedGameRenderer({ data }: { data: TemplatedGame })
           srcDoc={html}
           title={data.title}
           className="flex-1 w-full bg-white"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-fullscreen allow-downloads"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads" allowFullScreen
         />
       )}
     </div>

@@ -72,7 +72,7 @@ export default function HTMLContentRenderer({
         srcDoc={html}
         title="Generated content"
         className="flex-1 w-full bg-white dark:bg-deep-surface"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-fullscreen allow-downloads"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-downloads" allowFullScreen
       />
     </div>
   );
