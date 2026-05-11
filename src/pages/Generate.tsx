@@ -675,8 +675,8 @@ export default function Generate() {
           {/* HARD BLOCK — clear subject mismatch (e.g. "python" in Maths).
               Generate is disabled until the teacher fixes it OR overrides. */}
           {tool && active && topicHardBlock && currentTopic && !topicOverride && (
-            <div className="bg-coral/10 dark:bg-coral/15 border-2 border-coral rounded-2xl px-4 py-3 text-sm">
-              <p className="font-bold text-coral mb-1">
+            <div className="bg-ss-orange-500/10 dark:bg-ss-orange-500/15 border-2 border-ss-orange-500 rounded-2xl px-4 py-3 text-sm">
+              <p className="font-bold text-ss-orange-600 dark:text-ss-orange-500 mb-1">
                 Topic doesn't match the subject
               </p>
               <p className="text-ss-ink-900 dark:text-ss-ink-100 leading-relaxed">
@@ -688,7 +688,7 @@ export default function Generate() {
               <button
                 type="button"
                 onClick={() => setTopicOverride(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-coral hover:text-coral/80 underline underline-offset-2"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-ss-orange-600 dark:text-ss-orange-500 hover:text-ss-orange-700 dark:hover:text-ss-orange-400 underline underline-offset-2"
               >
                 Override — I know what I'm doing
               </button>
