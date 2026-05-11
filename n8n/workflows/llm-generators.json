@@ -1442,27 +1442,30 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://api.anthropic.com/v1/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "anthropicApi",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "none",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
             {
-              "name": "anthropic-version",
-              "value": "2023-06-01"
+              "name": "Authorization",
+              "value": "=Bearer {{ $env.GROQ_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
             }
           ]
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 400, system: $('Validate Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Validate Build Prompt').first().json.user }] }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'system', content: $('Validate Build Prompt').first().json.system }, { role: 'user',   content: $('Validate Build Prompt').first().json.user }], max_tokens: 400, temperature: 0.1 }) }}",
         "options": {
-          "timeout": 15000
+          "timeout": 8000
         }
       },
-      "id": "validate-claude-001",
-      "name": "Validate Claude",
+      "id": "validate-groq-001",
+      "name": "Validate Groq",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -1475,7 +1478,7 @@
       "parameters": {
         "mode": "runOnceForAllItems",
         "language": "javaScript",
-        "jsCode": "let out = { ok: true };\ntry {\n  const data = $json || {};\n  if (data._skip) { out = { ok: true }; }\n  else {\n    let text = '';\n    if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) {\n      text = data.content[0].text;\n    }\n    let s = String(text || '').trim();\n    s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n    const startObj = s.indexOf('{');\n    const end = s.lastIndexOf('}');\n    if (startObj !== -1 && end > startObj) {\n      const raw = s.slice(startObj, end + 1);\n      const parsed = JSON.parse(raw);\n      out = {\n        ok: parsed.ok !== false,\n        reason: parsed.reason,\n        suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 3) : undefined,\n      };\n    }\n  }\n} catch (e) {\n  // If anything fails, fail-open (assume OK) — never block the teacher.\n  out = { ok: true, _validatorFailed: true };\n}\nreturn [{ json: out }];\n"
+        "jsCode": "let out = { ok: true };\ntry {\n  const data = $json || {};\n  if (data._skip) { out = { ok: true }; }\n  else {\n    let text = '';\n    // Groq (OpenAI-compatible) — choices[0].message.content\n    if (data.choices && Array.isArray(data.choices) && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {\n      text = data.choices[0].message.content;\n    }\n    // Anthropic format (kept for backward compatibility) — content[0].text\n    else if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) {\n      text = data.content[0].text;\n    }\n    let s = String(text || '').trim();\n    s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n    const startObj = s.indexOf('{');\n    const end = s.lastIndexOf('}');\n    if (startObj !== -1 && end > startObj) {\n      const raw = s.slice(startObj, end + 1);\n      const parsed = JSON.parse(raw);\n      out = {\n        ok: parsed.ok !== false,\n        reason: parsed.reason,\n        suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 3) : undefined,\n      };\n    }\n  }\n} catch (e) {\n  // Fail open — never block the teacher because the validator hiccupped.\n  out = { ok: true, _validatorFailed: true };\n}\nreturn [{ json: out }];\n"
       },
       "id": "validate-parse-001",
       "name": "Validate Parse",
@@ -2377,25 +2380,7 @@
       "main": [
         [
           {
-            "node": "Validate Claude",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Validate Claude": {
-      "main": [
-        [
-          {
-            "node": "Validate Parse",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Validate Parse",
+            "node": "Validate Groq",
             "type": "main",
             "index": 0
           }
@@ -2407,6 +2392,24 @@
         [
           {
             "node": "Validate Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Groq": {
+      "main": [
+        [
+          {
+            "node": "Validate Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validate Parse",
             "type": "main",
             "index": 0
           }
