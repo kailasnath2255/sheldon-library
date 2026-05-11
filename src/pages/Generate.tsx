@@ -479,48 +479,44 @@ export default function Generate() {
                     readOnly
                     value={active?.name ?? "—"}
                     className={`mt-1.5 ${inputCls} bg-navy/5 cursor-not-allowed`}
+                    aria-label="Student (set in Students page)"
                   />
                 </label>
               </div>
               <label className="block">
                 <span className="pill bg-navy/5 text-navy/70">Grade</span>
-                <select
-                  className={`mt-1.5 ${inputCls}`}
-                  value={grade}
-                  onChange={(e) => setGrade(Number(e.target.value))}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((g) => (
-                    <option key={g} value={g}>
-                      Grade {g}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  readOnly
+                  value={`Grade ${grade}`}
+                  className={`mt-1.5 ${inputCls} bg-navy/5 cursor-not-allowed`}
+                  aria-label="Grade (set in Students page)"
+                />
               </label>
               <label className="block">
                 <span className="pill bg-navy/5 text-navy/70">Region</span>
-                <select
-                  className={`mt-1.5 ${inputCls}`}
+                <input
+                  readOnly
                   value={country}
-                  onChange={(e) => setCountry(e.target.value as Country)}
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+                  className={`mt-1.5 ${inputCls} bg-navy/5 cursor-not-allowed`}
+                  aria-label="Region (set in Students page)"
+                />
               </label>
               <div className="col-span-2">
                 <label className="block">
                   <span className="pill bg-navy/5 text-navy/70">Subject</span>
                   <input
-                    className={`mt-1.5 ${inputCls}`}
+                    readOnly
                     value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
+                    className={`mt-1.5 ${inputCls} bg-navy/5 cursor-not-allowed`}
+                    aria-label="Subject (set in Students page)"
                   />
                 </label>
               </div>
             </div>
+            <p className="mt-3 text-[11px] text-ss-ink-500 dark:text-ss-ink-300">
+              To change any of these, edit the student profile in the{" "}
+              <span className="font-semibold">Students</span> page.
+            </p>
           </section>
 
           {/* Tool picker */}
