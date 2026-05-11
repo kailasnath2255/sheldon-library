@@ -61,6 +61,7 @@ import {
   validateTopic,
   type TopicValidation,
 } from "@/lib/api";
+import { quickTopicCheck } from "@/lib/topic-heuristic";
 import { useStore, useActiveStudent } from "@/store/useStore";
 import type {
   AnalysisResponse,
@@ -213,11 +214,24 @@ export default function Generate() {
     return "";
   }, [tool, presentationForm.topic, lessonPlanForm.topic, worksheetForm.topic, gameForm.topic, assessmentForm.topics]);
 
-  // Debounced topic validation. Calls /topic-validate ~800ms after the user
-  // stops editing. Fails open (never blocks generation). Results are advisory.
+  // Two-layer topic validation:
+  // 1. INSTANT client-side heuristic catches obvious subject mismatches
+  //    ("python" for Maths, "Shakespeare" for Science) with no network call.
+  // 2. DEBOUNCED Groq Llama call (~800ms after stop typing) catches the
+  //    grade-appropriateness case the heuristic can't see ("addition" for
+  //    Grade 11 Maths). Fails open — never blocks generation.
   useEffect(() => {
     setTopicValidation(null);
     if (!tool || !currentTopic || currentTopic.length < 3 || !subject) return;
+
+    // Layer 1 — instant heuristic
+    const quick = quickTopicCheck(currentTopic, subject);
+    if (!quick.ok) {
+      setTopicValidation({ ok: false, reason: quick.reason });
+      return; // Heuristic was confident; skip the LLM call.
+    }
+
+    // Layer 2 — debounced Groq grade check
     const handle = setTimeout(() => {
       validateTopic({
         topic: currentTopic,
