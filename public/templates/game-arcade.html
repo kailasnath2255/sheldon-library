@@ -561,6 +561,17 @@ body {
 <script id="ss-data" type="application/json">__DATA_JSON__</script>
 <script>
 (() => {
+  function fatal(reason) {
+    document.body.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px;font-family:system-ui,sans-serif;">' +
+        '<div style="text-align:center;max-width:520px;">' +
+          '<div style="font-size:54px;line-height:1;margin-bottom:14px;">⚠️</div>' +
+          '<h2 style="font-size:24px;margin-bottom:10px;">Could not load this game</h2>' +
+          '<p style="font-size:14px;line-height:1.55;opacity:.75;">' + String(reason).replace(/[<>]/g, '') + '</p>' +
+        '</div>' +
+      '</div>';
+  }
+  try {
   let DATA = {};
   try { DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}') || {}; }
   catch (e) { DATA = {}; }
@@ -931,6 +942,7 @@ body {
 
   // Start
   renderCurrent();
+  } catch (err) { fatal(err && err.message ? err.message : String(err)); }
 })();
 </script>
 </body>

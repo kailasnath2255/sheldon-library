@@ -195,34 +195,62 @@ body {
 <script id="ss-data" type="application/json">__DATA_JSON__</script>
 <script>
 (() => {
+  // Belt-and-suspenders: any throw inside this IIFE leaves the static
+  // HTML on screen with no indication anything failed. Wrap the whole
+  // thing and surface the error visibly.
+  function fatal(reason) {
+    const stage = document.getElementById('stage');
+    if (stage) {
+      stage.innerHTML =
+        '<div style="text-align:center;padding:40px 20px;">' +
+          '<div style="font-size:48px;line-height:1;margin-bottom:14px;">⚠️</div>' +
+          '<h2 style="font-family:var(--display);font-size:24px;margin-bottom:10px;">Could not load this quiz</h2>' +
+          '<p style="font-size:14px;line-height:1.55;opacity:.75;max-width:520px;margin:0 auto;">' +
+            String(reason).replace(/[<>]/g, '') +
+          '</p>' +
+        '</div>';
+    }
+    ['prevBtn','nextBtn','submitBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+    const pb = document.querySelector('.progress-bar'); if (pb) pb.style.display = 'none';
+    const qn = document.querySelector('.q-nav'); if (qn) qn.style.display = 'none';
+  }
+  try {
   let DATA = {};
   try { DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}') || {}; }
   catch (e) { DATA = {}; }
-  // Drop malformed questions defensively — only keep ones with text + >=2 options + valid correctIndex
-  const QS = (DATA.questions || []).filter(q =>
+  // Drop malformed questions defensively — only keep ones with text + >=2 options + valid correctIndex.
+  // Coerce questions to an array first so weird shapes (string/object/null) can't crash .filter.
+  const rawQS = Array.isArray(DATA.questions) ? DATA.questions : [];
+  const QS = rawQS.filter(q =>
     q && typeof q === 'object' &&
     typeof q.text === 'string' && q.text.trim().length > 0 &&
     Array.isArray(q.options) && q.options.length >= 2 &&
     typeof q.correctIndex === 'number' && q.correctIndex >= 0 && q.correctIndex < q.options.length
   );
+  // Give each Q an id if missing — required by answer tracking
+  QS.forEach((q, i) => { if (!q.id) q.id = 'q' + (i + 1); });
   const TOTAL = QS.length;
   const TIMED = !!DATA.timed;
-  const TIME_S = Math.max(60, (DATA.totalTimeMin || 30) * 60);
+  const TIME_S = Math.max(60, (Number(DATA.totalTimeMin) || 30) * 60);
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   document.getElementById('quizTitle').textContent = DATA.title || 'Quiz';
   document.getElementById('quizSubtitle').textContent = DATA.subtitle || '';
   document.getElementById('qTot').textContent = TOTAL;
+  document.getElementById('qCur').textContent = TOTAL === 0 ? 0 : 1;
 
   // Empty-payload fallback — show a clear message rather than a blank stage.
   if (TOTAL === 0) {
+    const droppedCount = rawQS.length;
     document.getElementById('stage').innerHTML =
       '<div style="text-align:center;padding:40px 20px;">' +
         '<div style="font-size:48px;line-height:1;margin-bottom:14px;">🪹</div>' +
-        '<h2 style="font-family:var(--display);font-size:28px;margin-bottom:10px;">No questions in this quiz</h2>' +
+        '<h2 style="font-family:var(--display);font-size:28px;margin-bottom:10px;">No valid questions</h2>' +
         '<p style="font-size:15px;line-height:1.55;opacity:.75;max-width:520px;margin:0 auto;">' +
-          'The AI returned a quiz with no valid questions. This usually means a malformed response — head back and regenerate.' +
+          (droppedCount > 0
+            ? ('The AI returned ' + droppedCount + ' question' + (droppedCount === 1 ? '' : 's') + ' but they were missing required fields (text, options, correctIndex). Regenerate to retry.')
+            : 'The AI returned a quiz with no questions. Regenerate to retry.') +
         '</p>' +
       '</div>';
     document.getElementById('prevBtn').style.display = 'none';
@@ -400,6 +428,9 @@ body {
   }
 
   show(0);
+  } catch (err) {
+    fatal(err && err.message ? err.message : String(err));
+  }
 })();
 </script>
 </body>
