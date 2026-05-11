@@ -72,11 +72,18 @@ async function callWebhook<T>(
     if (!text) {
       throw new Error(`${path} returned empty response (200)`);
     }
+    let parsed: any;
     try {
-      return JSON.parse(text) as T;
+      parsed = JSON.parse(text);
     } catch (e) {
       throw new Error(`${path} returned invalid JSON: ${text.slice(0, 200)}`);
     }
+    // n8n Parse nodes return {error: "..."} on validation failure with HTTP 200.
+    // Surface that as a real error so the existing error UI handles it.
+    if (parsed && typeof parsed === "object" && typeof parsed.error === "string" && !parsed.questions && !parsed.slides && !parsed.sections && !parsed.timeline && !parsed.data) {
+      throw new Error(parsed.error);
+    }
+    return parsed as T;
   } finally {
     clearTimeout(timeout);
   }
