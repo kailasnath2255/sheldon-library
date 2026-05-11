@@ -359,6 +359,30 @@ export const generateGame = (p: GamePayloadInput) =>
     timeoutMs: 120_000,
   });
 
+// ────────────────────────────────────────────────────────────
+// Topic validation (Claude Haiku) — quick check that the topic is
+// appropriate for the subject + grade. Fails open on any error so
+// it never blocks the teacher.
+// ────────────────────────────────────────────────────────────
+export type TopicValidation = {
+  ok: boolean;
+  reason?: string;
+  suggestions?: string[];
+};
+
+export type TopicValidatePayload = {
+  topic: string;
+  subject: string;
+  grade: number;
+  region?: string;
+};
+
+export const validateTopic = (p: TopicValidatePayload) =>
+  callWebhook<TopicValidation>("topic-validate", p, {
+    mockResolver: () => ({ ok: true }),
+    timeoutMs: 15_000,
+  });
+
 export const presentationToPptx = (slides: any[]) =>
   callWebhook<{ base64: string; filename: string }>(
     "presentation-to-pptx",

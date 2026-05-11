@@ -1407,6 +1407,97 @@
         1560
       ],
       "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "topic-validate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "validate-webhook-001",
+      "name": "Validate Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const p = ($json && $json.body) || $json || {};\nconst topic = String(p.topic || '').trim();\nconst subject = String(p.subject || 'Maths').trim();\nconst grade = Number(p.grade); const safeGrade = Number.isFinite(grade) && grade > 0 ? grade : 5;\nconst region = String(p.region || 'UK').trim();\n\nif (!topic) {\n  return [{ json: { _skip: true } }];\n}\n\nconst system = [\n  'You validate whether a teacher\\'s proposed topic is appropriate for a student\\'s subject and grade.',\n  'Be STRICT but practical.',\n  '',\n  'Return ONLY a single JSON object. No prose. No markdown fences.',\n  '',\n  'SHAPE:',\n  '{ \"ok\": boolean, \"reason\": \"<one short sentence if not ok>\", \"suggestions\": [\"topic1\", \"topic2\", \"topic3\"] }',\n  '',\n  'CRITERIA — \"ok\": false if ANY of these are true:',\n  '1. Topic does not belong to the subject (e.g. \"Shakespeare\" for Maths).',\n  '2. Topic is too basic for the grade (e.g. \"addition\" for Grade 11 Maths).',\n  '3. Topic is too advanced for the grade (e.g. \"calculus\" for Grade 4 Maths).',\n  '4. Topic is gibberish, empty, or not a real curriculum topic.',\n  '',\n  'If ok: false, suggestions should be 3 well-pitched topics that ARE appropriate for that subject + grade + region.',\n  'If ok: true, omit reason and suggestions.'\n].join('\\n');\n\nconst userMsg = [\n  'Subject: ' + subject,\n  'Grade: ' + safeGrade,\n  'Region: ' + region,\n  'Proposed topic: \"' + topic + '\"',\n  '',\n  'Is this topic appropriate? Reply with JSON only.'\n].join('\\n');\n\nreturn [{ json: { system, user: userMsg, _topic: topic } }];\n"
+      },
+      "id": "validate-build-001",
+      "name": "Validate Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'claude-haiku-4-5', max_tokens: 400, system: $('Validate Build Prompt').first().json.system, messages: [{ role: 'user', content: $('Validate Build Prompt').first().json.user }] }) }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "validate-claude-001",
+      "name": "Validate Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        1760
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "let out = { ok: true };\ntry {\n  const data = $json || {};\n  if (data._skip) { out = { ok: true }; }\n  else {\n    let text = '';\n    if (data.content && Array.isArray(data.content) && data.content[0] && data.content[0].text) {\n      text = data.content[0].text;\n    }\n    let s = String(text || '').trim();\n    s = s.replace(/^```(?:json)?\\s*\\n?/i, '').replace(/\\n?```\\s*$/g, '').trim();\n    const startObj = s.indexOf('{');\n    const end = s.lastIndexOf('}');\n    if (startObj !== -1 && end > startObj) {\n      const raw = s.slice(startObj, end + 1);\n      const parsed = JSON.parse(raw);\n      out = {\n        ok: parsed.ok !== false,\n        reason: parsed.reason,\n        suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions.slice(0, 3) : undefined,\n      };\n    }\n  }\n} catch (e) {\n  // If anything fails, fail-open (assume OK) — never block the teacher.\n  out = { ok: true, _validatorFailed: true };\n}\nreturn [{ json: out }];\n"
+      },
+      "id": "validate-parse-001",
+      "name": "Validate Parse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "validate-respond-001",
+      "name": "Validate Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        1760
+      ]
     }
   ],
   "connections": {
@@ -2265,6 +2356,57 @@
         [
           {
             "node": "Game Build Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Validate Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Claude": {
+      "main": [
+        [
+          {
+            "node": "Validate Parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validate Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Parse": {
+      "main": [
+        [
+          {
+            "node": "Validate Respond",
             "type": "main",
             "index": 0
           }

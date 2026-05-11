@@ -58,6 +58,8 @@ import {
   generateLessonPlan,
   generatePresentation,
   generateWorksheet,
+  validateTopic,
+  type TopicValidation,
 } from "@/lib/api";
 import { useStore, useActiveStudent } from "@/store/useStore";
 import type {
@@ -198,6 +200,36 @@ export default function Generate() {
   const [savedLibraryItemId, setSavedLibraryItemId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [topicValidation, setTopicValidation] = useState<TopicValidation | null>(null);
+
+  // Compute the current topic for whatever tool is active. Used to drive
+  // the background topic-vs-subject-vs-grade validator below.
+  const currentTopic = useMemo(() => {
+    if (tool === "presentation") return presentationForm.topic.trim();
+    if (tool === "lessonplan") return lessonPlanForm.topic.trim();
+    if (tool === "worksheet") return worksheetForm.topic.trim();
+    if (tool === "games") return gameForm.topic.trim();
+    if (tool === "assessment") return assessmentForm.topics[0]?.trim() || "";
+    return "";
+  }, [tool, presentationForm.topic, lessonPlanForm.topic, worksheetForm.topic, gameForm.topic, assessmentForm.topics]);
+
+  // Debounced topic validation. Calls /topic-validate ~800ms after the user
+  // stops editing. Fails open (never blocks generation). Results are advisory.
+  useEffect(() => {
+    setTopicValidation(null);
+    if (!tool || !currentTopic || currentTopic.length < 3 || !subject) return;
+    const handle = setTimeout(() => {
+      validateTopic({
+        topic: currentTopic,
+        subject,
+        grade,
+        region: country,
+      })
+        .then((v) => setTopicValidation(v))
+        .catch(() => setTopicValidation(null));
+    }, 800);
+    return () => clearTimeout(handle);
+  }, [tool, currentTopic, subject, grade, country]);
 
   const setToolAndUrl = (t: Tool | null) => {
     setTool(t);
@@ -611,6 +643,38 @@ export default function Generate() {
               {tool === "lessonplan" && "add a topic to enable Generate."}
               {tool === "presentation" && "add a topic to enable Generate."}
               {tool === "games" && "add a topic to enable Generate."}
+            </div>
+          )}
+
+          {/* Topic validation hint — soft warning, doesn't block Generate */}
+          {tool && active && topicValidation && !topicValidation.ok && currentTopic && (
+            <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-600/60 rounded-2xl px-4 py-3 text-sm">
+              <p className="font-bold text-amber-900 dark:text-amber-200 mb-1">
+                Hmm — "{currentTopic}" might not fit Grade {grade} {subject}.
+              </p>
+              {topicValidation.reason && (
+                <p className="text-amber-800 dark:text-amber-300 mb-2">{topicValidation.reason}</p>
+              )}
+              {topicValidation.suggestions && topicValidation.suggestions.length > 0 && (
+                <>
+                  <p className="text-xs font-semibold text-amber-900 dark:text-amber-200 mb-1.5">
+                    Try one of these instead:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {topicValidation.suggestions.map((s) => (
+                      <span
+                        key={s}
+                        className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-white dark:bg-deep-surface text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-600/60"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-2 italic">
+                You can still tap Generate — this is just a suggestion.
+              </p>
             </div>
           )}
 
