@@ -132,7 +132,8 @@ body {
   font-weight: 700;
   line-height: 1.05;
   text-align: center;
-  text-shadow: 2px 2px 0 var(--accent), 0 4px 12px rgba(31,43,62,.08);
+  /* Soft drop shadow only — no hard offset that ghosts on serif fonts */
+  text-shadow: 0 4px 14px rgba(31, 43, 62, .15);
   margin-bottom: 14px;
   color: var(--ink);
   letter-spacing: .005em;
@@ -857,23 +858,37 @@ body {
   // returns words like "check" or "book" instead of an emoji, which
   // overflow the small bullet/icon badges. Map known names → emoji.
   const ICON_MAP = {
-    check: '✓', tick: '✓', done: '✓', complete: '✓',
+    check: '✓', checkmark: '✓', check_mark: '✓', tick: '✓', tickmark: '✓',
+    done: '✓', complete: '✓', completed: '✓', ok: '✓', okay: '✓', yes: '✓',
     star: '★', favorite: '★', favourite: '★',
     heart: '♥', love: '♥',
-    book: '📖', books: '📚', reading: '📖',
-    pencil: '✏️', write: '✏️', edit: '✏️',
-    flag: '🚩', target: '🎯', goal: '🎯',
-    bulb: '💡', light: '💡', idea: '💡',
-    thumbs: '👍', up: '👍', good: '👍',
-    smile: '🙂', happy: '🙂',
+    book: '📖', books: '📚', reading: '📖', read: '📖',
+    pencil: '✏️', write: '✏️', writing: '✏️', edit: '✏️',
+    flag: '🚩', target: '🎯', goal: '🎯', bullseye: '🎯',
+    bulb: '💡', lightbulb: '💡', light: '💡', idea: '💡',
+    thumbs: '👍', thumbs_up: '👍', up: '👍', good: '👍', great: '👍',
+    smile: '🙂', happy: '🙂', face: '🙂',
     fire: '🔥', hot: '🔥',
     sun: '☀️', moon: '🌙', cloud: '☁️',
     leaf: '🍃', tree: '🌳', flower: '🌸',
-    rocket: '🚀', sparkle: '✨', sparkles: '✨',
-    note: '📝', clipboard: '📋',
-    question: '❓', exclaim: '❗', exclamation: '❗',
-    plus: '➕', minus: '➖', cross: '✕', wrong: '✕',
-    arrow: '→', right: '→', left: '←', up_arrow: '↑', down: '↓',
+    rocket: '🚀', sparkle: '✨', sparkles: '✨', shine: '✨',
+    note: '📝', notes: '📝', clipboard: '📋',
+    question: '❓', question_mark: '❓',
+    exclaim: '❗', exclamation: '❗', exclamation_mark: '❗',
+    plus: '➕', add: '➕', minus: '➖', subtract: '➖',
+    cross: '✕', x: '✕', wrong: '✕', no: '✕', incorrect: '✕',
+    arrow: '→', right: '→', left: '←', up_arrow: '↑', down_arrow: '↓',
+    music: '🎵', note_music: '🎵', dance: '🎵',
+    globe: '🌍', earth: '🌍', world: '🌍',
+    brain: '🧠', think: '🧠', thinking: '🧠',
+    eye: '👁️', see: '👁️', watch: '👁️', look: '👁️',
+    ear: '👂', listen: '👂', hear: '👂',
+    hand: '✋', wave: '👋',
+    clock: '⏰', time: '⏰', timer: '⏰',
+    key: '🔑', lock: '🔒',
+    magnify: '🔍', search: '🔍', find: '🔍',
+    crown: '👑', trophy: '🏆', medal: '🥇', win: '🏆',
+    party: '🎉', celebrate: '🎉', confetti: '🎉',
   };
   const iconize = (s, fallback) => {
     const fb = fallback || '★';
@@ -1064,11 +1079,19 @@ body {
       const pills = (s.options || []).map((opt, i) =>
         `<div class="word-pill" data-fb-word="${esc(opt)}" data-fb-correct="${i === s.correctIndex ? '1' : ''}">${esc(opt)}</div>`
       ).join('');
+      // Defensive: AI sometimes generates "after" as "= 20" when 20 is the answer,
+      // producing nonsense like "4 × 5 = [blank] = 20". Strip that.
+      let after = String(s.after || '');
+      const correct = (s.options || [])[s.correctIndex];
+      if (correct) {
+        const esc_correct = String(correct).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        after = after.replace(new RegExp('^\\s*=?\\s*' + esc_correct + '\\s*=?\\s*$', 'i'), '').trim();
+      }
       return `
         <span class="section-badge">${esc(s.section || 'Fill the Blank')}</span>
         <h1 class="display-title display-md">${esc(s.title || 'Fill the Blank!')}</h1>
         <div class="big-card">
-          <p class="fill-sentence">${esc(s.before)} <span class="blank-slot" data-blank>___</span> ${esc(s.after)}</p>
+          <p class="fill-sentence">${esc(s.before)} <span class="blank-slot" data-blank>___</span> ${esc(after)}</p>
           <p style="font-size:14px;margin-top:14px;opacity:.7">Pick the missing word:</p>
           <div class="word-options">${pills}</div>
           <div class="quiz-feedback">${esc(s.explanation || 'Perfect!')}</div>

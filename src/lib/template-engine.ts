@@ -124,7 +124,7 @@ const TEMPLATE_URLS: Record<string, string> = {
 // doesn't serve a stale copy. Static assets under /public are not
 // fingerprinted by Vite, so without a cache-buster the browser will
 // keep serving the previous version for hours/days.
-const TEMPLATE_VERSION = "9";
+const TEMPLATE_VERSION = "10";
 
 const _templateCache = new Map<string, string>();
 export async function loadTemplate(name: string): Promise<string> {
