@@ -582,6 +582,16 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
   }
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const ICON_MAP = { check:'✓', tick:'✓', done:'✓', complete:'✓', star:'★', heart:'♥', book:'📖', books:'📚', pencil:'✏️', flag:'🚩', target:'🎯', goal:'🎯', bulb:'💡', light:'💡', idea:'💡', thumbs:'👍', smile:'🙂', fire:'🔥', sun:'☀️', moon:'🌙', cloud:'☁️', leaf:'🍃', tree:'🌳', flower:'🌸', rocket:'🚀', sparkle:'✨', sparkles:'✨', note:'📝', clipboard:'📋', question:'❓', exclamation:'❗', plus:'➕', minus:'➖', cross:'✕', arrow:'→' };
+  const iconize = (s, fb) => {
+    const F = fb || '★';
+    if (!s) return F;
+    const v = String(s).trim();
+    if (!v) return F;
+    if (v.length <= 2) return v;
+    const key = v.toLowerCase().replace(/[\s_-]+/g, '_');
+    return ICON_MAP[key] || F;
+  };
 
   // Map slide.section text → academic section class (controls gradient + accent color)
   const SECTION_MAP = {
@@ -658,7 +668,7 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
     },
     body(s) {
       return `
-        ${s.icon ? `<div class="title-emoji" style="font-size:3.5rem">${esc(s.icon)}</div>` : ''}
+        ${s.icon ? `<div class="title-emoji" style="font-size:3.5rem">${esc(iconize(s.icon, '✨'))}</div>` : ''}
         <h2>${esc(s.title || '')}</h2>
         <div class="card" style="text-align:left">
           <p>${esc(s.body || '')}</p>
@@ -679,7 +689,7 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
       return `
         <h2>${esc(s.title || 'Definition')}</h2>
         <div class="card" style="text-align:left">
-          ${s.icon ? `<div style="font-size:2.6rem;text-align:center;margin-bottom:.3rem">${esc(s.icon)}</div>` : ''}
+          ${s.icon ? `<div style="font-size:2.6rem;text-align:center;margin-bottom:.3rem">${esc(iconize(s.icon, '✨'))}</div>` : ''}
           <div class="def-term" style="text-align:center">${esc(s.term)}</div>
           ${s.formula ? `<div style="text-align:center"><div class="def-formula">${esc(s.formula)}</div></div>` : ''}
           <p class="def-meaning" style="text-align:center;margin-top:.4rem">${esc(s.meaning)}</p>
@@ -711,7 +721,7 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
       const cols = items.length > 4 ? 'cols3' : '';
       const cards = items.map(it =>
         `<div class="example-card">
-          <span class="example-icon">${esc(it.icon || '✨')}</span>
+          <span class="example-icon">${esc(iconize(it.icon, '✨'))}</span>
           <span class="example-text">${esc(it.text)}</span>
         </div>`).join('');
       return `
@@ -795,7 +805,7 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
     takeaway(s) {
       const items = (s.points || []).map(p =>
         `<div class="checklist-item" style="background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.3)">
-          <span style="font-size:1.2rem">${esc(p.icon || '✓')}</span>
+          <span style="font-size:1.2rem">${esc(iconize(p.icon, '✓'))}</span>
           <span>${esc(p.text || p)}</span>
         </div>`).join('');
       return `
@@ -804,7 +814,7 @@ p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: rela
     },
     hots(s) {
       return `
-        ${s.icon ? `<div class="title-emoji" style="font-size:3.5rem">${esc(s.icon)}</div>` : ''}
+        ${s.icon ? `<div class="title-emoji" style="font-size:3.5rem">${esc(iconize(s.icon, '✨'))}</div>` : ''}
         <h2>${esc(s.title || 'What if…?')}</h2>
         <div class="card" style="text-align:left;background:rgba(244,114,182,.06);border-color:rgba(244,114,182,.3)">
           <p style="font-size:1rem;line-height:1.6">${esc(s.question)}</p>

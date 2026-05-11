@@ -128,14 +128,18 @@ body {
 }
 .display-title {
   font-family: var(--display);
-  font-size: clamp(48px, 8vw, 92px);
+  font-size: clamp(44px, 7.5vw, 84px);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.05;
   text-align: center;
-  text-shadow: 4px 4px 0 var(--accent);
+  text-shadow: 2px 2px 0 var(--accent), 0 4px 12px rgba(31,43,62,.08);
   margin-bottom: 14px;
   color: var(--ink);
   letter-spacing: .005em;
+  max-width: 96%;
+  margin-left: auto;
+  margin-right: auto;
+  word-break: break-word;
 }
 .display-md  { font-size: clamp(36px, 5vw, 60px); }
 .display-sm  { font-size: clamp(28px, 4vw, 44px); }
@@ -791,6 +795,42 @@ body {
   const $notes = document.getElementById('notesDrawer');
   const $notesText = document.getElementById('notesText');
 
+  // Convert AI-emitted icon strings into glyphs. The AI sometimes
+  // returns words like "check" or "book" instead of an emoji, which
+  // overflow the small bullet/icon badges. Map known names → emoji.
+  const ICON_MAP = {
+    check: '✓', tick: '✓', done: '✓', complete: '✓',
+    star: '★', favorite: '★', favourite: '★',
+    heart: '♥', love: '♥',
+    book: '📖', books: '📚', reading: '📖',
+    pencil: '✏️', write: '✏️', edit: '✏️',
+    flag: '🚩', target: '🎯', goal: '🎯',
+    bulb: '💡', light: '💡', idea: '💡',
+    thumbs: '👍', up: '👍', good: '👍',
+    smile: '🙂', happy: '🙂',
+    fire: '🔥', hot: '🔥',
+    sun: '☀️', moon: '🌙', cloud: '☁️',
+    leaf: '🍃', tree: '🌳', flower: '🌸',
+    rocket: '🚀', sparkle: '✨', sparkles: '✨',
+    note: '📝', clipboard: '📋',
+    question: '❓', exclaim: '❗', exclamation: '❗',
+    plus: '➕', minus: '➖', cross: '✕', wrong: '✕',
+    arrow: '→', right: '→', left: '←', up_arrow: '↑', down: '↓',
+  };
+  const iconize = (s, fallback) => {
+    const fb = fallback || '★';
+    if (!s) return fb;
+    const v = String(s).trim();
+    if (!v) return fb;
+    // Short strings (1-2 chars) are almost certainly emoji or single
+    // glyphs — keep as-is. Surrogate pairs count as 2 chars.
+    if (v.length <= 2) return v;
+    // Try the lowercase name lookup.
+    const key = v.toLowerCase().replace(/[\s_-]+/g, '_');
+    if (ICON_MAP[key]) return ICON_MAP[key];
+    // Anything else (multi-word, full sentences, etc.) → fallback.
+    return fb;
+  };
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
@@ -856,7 +896,7 @@ body {
       return `
         <span class="section-badge">${esc(s.section || '')}</span>
         <div class="big-card">
-          ${s.icon ? `<div style="font-size:54px;line-height:1">${esc(s.icon)}</div>` : ''}
+          ${s.icon ? `<div style="font-size:54px;line-height:1">${esc(iconize(s.icon, '✨'))}</div>` : ''}
           ${s.title ? `<h2 class="display-title display-sm" style="margin:12px 0;color:var(--primary);text-shadow:none">${esc(s.title)}</h2>` : ''}
           <p class="body-text" style="margin:0 auto">${esc(s.body)}</p>
         </div>
@@ -864,7 +904,7 @@ body {
     },
     objectives(s) {
       const items = (s.items || []).map(it =>
-        `<li><span class="bullet-icon">${esc(it.icon || '★')}</span><span>${esc(it.text)}</span></li>`
+        `<li><span class="bullet-icon">${esc(iconize(it.icon, '✓'))}</span><span>${esc(it.text)}</span></li>`
       ).join('');
       return `
         <span class="section-badge">${esc(s.section || 'Objectives')}</span>
@@ -877,7 +917,7 @@ body {
         <span class="section-badge">${esc(s.section || 'Definition')}</span>
         <h1 class="display-title display-md" style="color:var(--primary);text-shadow:4px 4px 0 var(--ink)">${esc(s.title || '')}</h1>
         <div class="concept-card tone-a" style="max-width:780px">
-          ${s.icon ? `<div class="concept-icon">${esc(s.icon)}</div>` : ''}
+          ${s.icon ? `<div class="concept-icon">${esc(iconize(s.icon, '✨'))}</div>` : ''}
           <div class="concept-name">${esc(s.term)}</div>
           ${s.formula ? `<div class="concept-formula">${esc(s.formula)}</div>` : ''}
           <p class="body-text" style="margin:10px auto">${esc(s.meaning)}</p>
@@ -908,7 +948,7 @@ body {
     examples(s) {
       const items = (s.items || []).map(it =>
         `<div class="example-card">
-          <span class="example-icon">${esc(it.icon || '★')}</span>
+          <span class="example-icon">${esc(iconize(it.icon, '★'))}</span>
           <span class="example-text">${esc(it.text)}</span>
         </div>`
       ).join('');
@@ -1012,7 +1052,7 @@ body {
     },
     takeaway(s) {
       const items = (s.points || []).map(p =>
-        `<li><span class="bullet-icon">${esc(p.icon || '✓')}</span><span>${esc(p.text || p)}</span></li>`
+        `<li><span class="bullet-icon">${esc(iconize(p.icon, '✓'))}</span><span>${esc(p.text || p)}</span></li>`
       ).join('');
       return `
         <span class="section-badge">${esc(s.section || 'Key Takeaways')}</span>
@@ -1024,7 +1064,7 @@ body {
         <span class="section-badge">${esc(s.section || 'Big Brain Time')}</span>
         <h1 class="display-title display-md">${esc(s.title || 'What if...?')}</h1>
         <div class="big-card">
-          ${s.icon ? `<div style="font-size:54px">${esc(s.icon)}</div>` : ''}
+          ${s.icon ? `<div style="font-size:54px">${esc(iconize(s.icon, '✨'))}</div>` : ''}
           <p class="body-text" style="font-size:22px;margin-top:8px">${esc(s.question)}</p>
         </div>
         ${s.mascotSays ? `<div class="mascot-row" style="margin-top:14px">${mascotBlock(1, s.mascotSays)}</div>` : ''}`;
