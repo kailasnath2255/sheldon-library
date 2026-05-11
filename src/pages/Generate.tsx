@@ -264,6 +264,7 @@ export default function Generate() {
             difficulty: assessmentForm.difficulty,
             grade,
             subject,
+            region: country,
             ...modelToPayload(model),
           });
           result = { type: "assessment", data };
@@ -278,6 +279,7 @@ export default function Generate() {
             sections: worksheetForm.sections,
             grade,
             subject,
+            region: country,
             ...modelToPayload(model),
           });
           result = { type: "worksheet", data };
@@ -291,6 +293,7 @@ export default function Generate() {
             duration: lessonPlanForm.duration,
             grade,
             subject,
+            region: country,
             ...modelToPayload(model),
           });
           result = { type: "lessonplan", data };
@@ -305,6 +308,7 @@ export default function Generate() {
             difficulty: presentationForm.difficulty,
             grade,
             subject,
+            region: country,
             ...modelToPayload(model),
           });
           result = { type: "presentation", data };
@@ -318,6 +322,7 @@ export default function Generate() {
             gameStyle: gameForm.gameStyle,
             grade,
             subject,
+            region: country,
             ...modelToPayload(model),
           });
           result = { type: "games", data };

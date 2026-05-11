@@ -260,6 +260,7 @@ export type AssessmentPayload = {
   difficulty: "Easy" | "Medium" | "Hard";
   grade: number;
   subject: string;
+  region?: string;
   model?: string;
   hfModel?: string;
 };
@@ -279,6 +280,7 @@ export type WorksheetPayload = {
   sections: string[];
   grade: number;
   subject: string;
+  region?: string;
   model?: string;
   hfModel?: string;
 };
@@ -306,6 +308,7 @@ export type LessonPlanPayload = {
   duration: number;
   grade: number;
   subject: string;
+  region?: string;
   model?: string;
   hfModel?: string;
 };
@@ -328,6 +331,7 @@ export type PresentationPayload = {
   difficulty: "Easy" | "Medium" | "Hard";
   grade: number;
   subject: string;
+  region?: string;
   model?: string;
   hfModel?: string;
 };
@@ -344,6 +348,7 @@ export type GamePayloadInput = {
   gameStyle: GameStyle;
   grade: number;
   subject: string;
+  region?: string;
   model?: string;
   hfModel?: string;
 };
