@@ -195,8 +195,16 @@ body {
 <script id="ss-data" type="application/json">__DATA_JSON__</script>
 <script>
 (() => {
-  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
-  const QS = DATA.questions || [];
+  let DATA = {};
+  try { DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}') || {}; }
+  catch (e) { DATA = {}; }
+  // Drop malformed questions defensively — only keep ones with text + >=2 options + valid correctIndex
+  const QS = (DATA.questions || []).filter(q =>
+    q && typeof q === 'object' &&
+    typeof q.text === 'string' && q.text.trim().length > 0 &&
+    Array.isArray(q.options) && q.options.length >= 2 &&
+    typeof q.correctIndex === 'number' && q.correctIndex >= 0 && q.correctIndex < q.options.length
+  );
   const TOTAL = QS.length;
   const TIMED = !!DATA.timed;
   const TIME_S = Math.max(60, (DATA.totalTimeMin || 30) * 60);
@@ -206,6 +214,24 @@ body {
   document.getElementById('quizTitle').textContent = DATA.title || 'Quiz';
   document.getElementById('quizSubtitle').textContent = DATA.subtitle || '';
   document.getElementById('qTot').textContent = TOTAL;
+
+  // Empty-payload fallback — show a clear message rather than a blank stage.
+  if (TOTAL === 0) {
+    document.getElementById('stage').innerHTML =
+      '<div style="text-align:center;padding:40px 20px;">' +
+        '<div style="font-size:48px;line-height:1;margin-bottom:14px;">🪹</div>' +
+        '<h2 style="font-family:var(--display);font-size:28px;margin-bottom:10px;">No questions in this quiz</h2>' +
+        '<p style="font-size:15px;line-height:1.55;opacity:.75;max-width:520px;margin:0 auto;">' +
+          'The AI returned a quiz with no valid questions. This usually means a malformed response — head back and regenerate.' +
+        '</p>' +
+      '</div>';
+    document.getElementById('prevBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = 'none';
+    document.getElementById('submitBtn').style.display = 'none';
+    document.querySelector('.progress-bar').style.display = 'none';
+    document.querySelector('.q-nav').style.display = 'none';
+    return;
+  }
 
   // Build navigator
   const $nav = document.getElementById('qNavGrid');

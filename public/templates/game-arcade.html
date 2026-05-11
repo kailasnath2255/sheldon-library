@@ -561,9 +561,29 @@ body {
 <script id="ss-data" type="application/json">__DATA_JSON__</script>
 <script>
 (() => {
-  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  let DATA = {};
+  try { DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}') || {}; }
+  catch (e) { DATA = {}; }
   const THEME = DATA.theme || {};
   const G = DATA.data || { gameType: 'quiz', payload: { questions: [] } };
+  // If game data is empty/malformed, show a friendly fallback instead of a blank arcade
+  const isEmpty = !G || !G.gameType || !G.payload ||
+    (G.gameType === 'quiz' && !(G.payload.questions && G.payload.questions.length)) ||
+    (G.gameType === 'fill-blank' && !(G.payload.questions && G.payload.questions.length)) ||
+    (G.gameType === 'sort' && !(G.payload.items && G.payload.items.length)) ||
+    (G.gameType === 'match' && !(G.payload.pairs && G.payload.pairs.length)) ||
+    (G.gameType === 'sequence' && !(G.payload.items && G.payload.items.length));
+  if (isEmpty) {
+    document.body.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:40px;">' +
+        '<div style="text-align:center;max-width:480px;">' +
+          '<div style="font-size:54px;line-height:1;margin-bottom:14px;">🪹</div>' +
+          '<h2 style="font-family:system-ui,sans-serif;font-size:26px;margin-bottom:10px;">No game data</h2>' +
+          '<p style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.55;opacity:.75;">The AI returned a game with no valid payload. Regenerate to retry.</p>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
 
   // Decorations
   document.querySelectorAll('.deco').forEach((el, i) => {

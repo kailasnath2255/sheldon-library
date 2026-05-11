@@ -328,9 +328,12 @@ body {
 <script id="ss-data" type="application/json">__DATA_JSON__</script>
 <script>
 (() => {
-  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  let DATA = {};
+  try { DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}') || {}; }
+  catch (e) { DATA = {}; }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const sections = Array.isArray(DATA.sections) ? DATA.sections : [];
+  const sections = (Array.isArray(DATA.sections) ? DATA.sections : [])
+    .filter(s => s && s.type && Array.isArray(s.items) && s.items.length > 0);
 
   document.getElementById('wsTitle').textContent = DATA.title || 'Worksheet';
   document.getElementById('wsSubtitle').textContent = DATA.subtitle || '';
@@ -339,6 +342,16 @@ body {
   document.getElementById('lblDate').textContent = (DATA.dateLabel || 'Date') + ':';
 
   const $sections = document.getElementById('sections');
+
+  if (sections.length === 0) {
+    $sections.innerHTML =
+      '<div style="text-align:center;padding:40px 20px;">' +
+        '<div style="font-size:40px;line-height:1;margin-bottom:14px;">🪹</div>' +
+        '<h2 style="font-family:var(--display);font-size:24px;margin-bottom:10px;">No sections in this worksheet</h2>' +
+        '<p style="font-size:14px;line-height:1.55;opacity:.75;">The AI returned a worksheet with no valid sections. Regenerate to retry.</p>' +
+      '</div>';
+    return;
+  }
 
   const renderers = {
     mcq(item, n) {

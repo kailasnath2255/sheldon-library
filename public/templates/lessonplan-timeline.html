@@ -285,22 +285,37 @@ h1.title {
 <script id="ss-data" type="application/json">__DATA_JSON__</script>
 <script>
 (() => {
-  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  let DATA = {};
+  try { DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}') || {}; }
+  catch (e) { DATA = {}; }
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const timeline = (Array.isArray(DATA.timeline) ? DATA.timeline : []).filter(t => t && t.section && t.activity);
+  const objectives = (Array.isArray(DATA.objectives) ? DATA.objectives : []).filter(Boolean);
 
   document.getElementById('lpTitle').textContent = DATA.title || 'Lesson Plan';
   document.getElementById('lpSubtitle').textContent = DATA.subtitle || '';
   document.getElementById('lpDuration').textContent = (DATA.durationMin || 55) + ' min';
 
+  if (timeline.length === 0) {
+    const main = document.querySelector('main') || document.body;
+    main.innerHTML =
+      '<div style="text-align:center;padding:60px 20px;">' +
+        '<div style="font-size:48px;line-height:1;margin-bottom:14px;">🪹</div>' +
+        '<h2 style="font-family:var(--display);font-size:28px;margin-bottom:10px;">No timeline in this lesson plan</h2>' +
+        '<p style="font-size:14px;line-height:1.55;opacity:.75;">The AI returned a lesson plan with no valid timeline entries. Regenerate to retry.</p>' +
+      '</div>';
+    return;
+  }
+
   const $obj = document.getElementById('lpObjectives');
-  (DATA.objectives || []).forEach(o => {
+  objectives.forEach(o => {
     const li = document.createElement('li');
     li.textContent = o;
     $obj.appendChild(li);
   });
 
   const $tl = document.getElementById('lpTimeline');
-  (DATA.timeline || []).forEach(t => {
+  timeline.forEach(t => {
     const div = document.createElement('div');
     div.className = 'tl-entry';
     div.innerHTML = `
