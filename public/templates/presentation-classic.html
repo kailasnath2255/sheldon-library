@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Caveat:wght@700&family=Patrick+Hand&family=Orbitron:wght@700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: __PRIMARY__;
+  --primary-soft: __PRIMARY_SOFT__;
+  --accent: __ACCENT__;
+  --secondary: __SECONDARY__;
+  --secondary-soft: __SECONDARY_SOFT__;
+  --bg1: __BG1__;
+  --bg2: __BG2__;
+  --bg3: __BG3__;
+  --ink: __INK__;
+  --cream: __CREAM__;
+  --display: '__DISPLAY_FONT__', 'Caveat', cursive;
+  --body: '__BODY_FONT__', 'Fredoka', system-ui, sans-serif;
+  --shadow: 0 6px 0 rgba(31,43,62,.15), 0 12px 30px rgba(31,43,62,.12);
+  --shadow-sm: 0 3px 0 rgba(31,43,62,.12), 0 6px 14px rgba(31,43,62,.08);
+  --shadow-press: 0 2px 0 rgba(31,43,62,.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 18% 8%, rgba(255,255,255,.4) 0%, transparent 40%),
+    radial-gradient(ellipse at 82% 18%, rgba(255,255,255,.3) 0%, transparent 40%),
+    linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 60%, var(--bg3) 100%);
+  background-attachment: fixed;
+  height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── Floating decorations ────────────────────────────────────── */
+.deco { position: fixed; pointer-events: none; z-index: 0; opacity: .6; color: var(--primary); }
+.deco svg { width: 100%; height: 100%; display: block; }
+.deco-1 { top: 12%; left: 4%;   width: 44px; height: 44px; animation: float 9s ease-in-out infinite; }
+.deco-2 { top: 38%; right: 6%;  width: 56px; height: 56px; animation: float 11s ease-in-out infinite -2s; color: var(--accent); }
+.deco-3 { bottom: 22%; left: 8%; width: 48px; height: 48px; animation: float 10s ease-in-out infinite -4s; color: var(--secondary); }
+.deco-4 { top: 70%; right: 10%; width: 38px; height: 38px; animation: float 13s ease-in-out infinite -1s; }
+.deco-5 { top: 24%; left: 50%;  width: 32px; height: 32px; animation: float 12s ease-in-out infinite -3s; color: var(--accent); }
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-18px) rotate(8deg); }
+}
+
+/* ── Top bar ─────────────────────────────────────────────────── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 14px 18px;
+  z-index: 50;
+  display: flex; justify-content: space-between; align-items: center;
+  pointer-events: none;
+}
+.topbar > * { pointer-events: auto; }
+.brand-chip {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 16px 6px 6px;
+  box-shadow: var(--shadow-sm);
+}
+.brand-chip img {
+  width: 36px; height: 36px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+.brand-chip .brand-text {
+  font-weight: 700; font-size: 13px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink);
+}
+.top-cluster { display: flex; gap: 8px; align-items: center; }
+.chip-btn {
+  background: #fff; color: var(--ink);
+  border: 3px solid var(--ink); border-radius: 999px;
+  padding: 9px 16px;
+  font-family: inherit; font-weight: 700; font-size: 13px;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+  transition: transform .12s, box-shadow .12s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.chip-btn:active { transform: translateY(2px); box-shadow: var(--shadow-press); }
+.chip-btn.star { background: var(--accent); }
+.chip-btn.counter { background: var(--ink); color: #fff; }
+.chip-btn:focus-visible { outline: 4px solid var(--accent); outline-offset: 2px; }
+
+/* ── Slide stage ─────────────────────────────────────────────── */
+#stage {
+  position: relative;
+  width: 100vw; height: 100vh;
+  z-index: 1;
+}
+.slide {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 96px 32px 124px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.slide.active { display: flex; animation: slideIn .55s cubic-bezier(.2,.8,.2,1); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Common slide chrome ─────────────────────────────────────── */
+.section-badge {
+  position: absolute; top: 80px;
+  background: var(--ink); color: #fff;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .14em;
+}
+.display-title {
+  font-family: var(--display);
+  font-size: clamp(48px, 8vw, 92px);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 4px 4px 0 var(--accent);
+  margin-bottom: 14px;
+  color: var(--ink);
+  letter-spacing: .005em;
+}
+.display-md  { font-size: clamp(36px, 5vw, 60px); }
+.display-sm  { font-size: clamp(28px, 4vw, 44px); }
+.subtitle {
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 500;
+  text-align: center;
+  max-width: 720px;
+  margin-bottom: 20px;
+  color: var(--ink);
+  opacity: .85;
+}
+.body-text {
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 500; line-height: 1.55;
+  max-width: 740px; text-align: center;
+  color: var(--ink);
+}
+.big-card {
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 28px;
+  padding: 32px 36px;
+  box-shadow: var(--shadow);
+  max-width: 820px; width: 100%;
+  text-align: center;
+}
+
+/* ── Mascots ─────────────────────────────────────────────────── */
+.mascot-row {
+  display: flex; gap: 22px;
+  justify-content: center; align-items: flex-end;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.mascot-block {
+  display: flex; align-items: center; gap: 12px;
+  max-width: 360px;
+  animation: mascotBob 3.4s ease-in-out infinite;
+}
+.mascot-block:nth-child(2) { animation-delay: .8s; }
+.mascot-svg {
+  width: 96px; height: 96px;
+  flex-shrink: 0;
+}
+.mascot-svg svg { width: 100%; height: 100%; display: block; }
+.mascot-bubble {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 22px 22px 22px 6px;
+  padding: 12px 18px;
+  box-shadow: var(--shadow-sm);
+  font-size: 15px; font-weight: 600;
+  line-height: 1.4;
+  position: relative;
+  max-width: 260px;
+}
+.mascot-block:nth-child(2) .mascot-bubble {
+  border-radius: 22px 22px 6px 22px;
+}
+@keyframes mascotBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* ── Action buttons (used inside slides) ─────────────────────── */
+.btn {
+  background: var(--primary); color: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 13px 24px;
+  font-family: inherit; font-weight: 700; font-size: 16px;
+  cursor: pointer; box-shadow: var(--shadow-sm);
+  transition: transform .12s, box-shadow .12s, background .2s;
+  margin: 4px;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(2px); box-shadow: var(--shadow-press); }
+.btn.alt { background: var(--secondary); }
+.btn.go { background: var(--accent); color: var(--ink); }
+.btn.correct {
+  background: #6DD9A5; color: var(--ink);
+  animation: pulseCorrect .55s ease-out;
+}
+.btn.wrong {
+  background: #FFB8B8; color: var(--ink);
+  animation: shake .45s ease;
+}
+@keyframes pulseCorrect {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-7px); }
+  75%      { transform: translateX(7px); }
+}
+
+/* ── Concept cards (definition / compare) ────────────────────── */
+.concept-pair {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  width: 100%; max-width: 920px;
+  margin-top: 16px;
+}
+.concept-card {
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  padding: 24px 22px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.concept-card.tone-a { background: var(--primary-soft); border-color: var(--primary); }
+.concept-card.tone-b { background: var(--secondary-soft); border-color: var(--secondary); }
+.concept-icon { font-size: 50px; line-height: 1; margin-bottom: 6px; }
+.concept-name {
+  font-size: clamp(26px, 3.4vw, 36px);
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-family: var(--display);
+}
+.concept-card.tone-a .concept-name { color: var(--primary); }
+.concept-card.tone-b .concept-name { color: var(--secondary); }
+.concept-formula {
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 5px 12px;
+  font-weight: 700; font-size: 14px;
+  display: inline-block; margin-bottom: 10px;
+}
+.concept-example { font-style: italic; font-size: 16px; color: rgba(31,43,62,.78); margin-top: 6px; }
+.concept-points { list-style: none; text-align: left; margin-top: 10px; }
+.concept-points li {
+  font-size: 15px; padding: 4px 0;
+  padding-left: 18px; position: relative;
+  color: rgba(31,43,62,.85);
+}
+.concept-points li::before {
+  content: ''; position: absolute; left: 0; top: 11px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor; opacity: .6;
+}
+
+/* ── Examples grid ───────────────────────────────────────────── */
+.examples-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  max-width: 900px; width: 100%;
+}
+.example-card {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; gap: 12px;
+  transition: transform .2s;
+}
+.example-card:hover { transform: translateY(-3px); }
+.example-icon {
+  font-size: 36px; line-height: 1;
+  width: 48px; height: 48px;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--primary-soft);
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+}
+.example-text { font-size: 16px; font-weight: 500; line-height: 1.4; }
+
+/* ── Quiz card ───────────────────────────────────────────────── */
+.quiz-card {
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 28px;
+  padding: 28px 32px;
+  box-shadow: var(--shadow);
+  max-width: 780px; width: 100%;
+  text-align: center;
+}
+.quiz-label {
+  background: var(--secondary); color: #fff;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-weight: 700; font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase;
+  display: inline-block; margin-bottom: 12px;
+}
+.quiz-prompt {
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 600; line-height: 1.35;
+  margin-bottom: 18px;
+  color: var(--ink);
+}
+.quiz-options { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.quiz-options.stacked { flex-direction: column; align-items: stretch; }
+.quiz-options.stacked .btn { text-align: left; }
+.quiz-feedback {
+  margin-top: 16px;
+  background: var(--cream);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-size: 15px; font-weight: 600;
+  display: none;
+  max-width: 660px;
+  margin-left: auto; margin-right: auto;
+}
+.quiz-feedback.show { display: block; animation: slideIn .35s; }
+
+/* ── Fact / Mnemonic cards ───────────────────────────────────── */
+.fact-card {
+  background: var(--accent);
+  border: 4px solid var(--ink);
+  border-radius: 26px;
+  padding: 22px 28px;
+  box-shadow: var(--shadow);
+  max-width: 720px; width: 100%;
+  text-align: center; position: relative;
+}
+.fact-badge {
+  position: absolute; top: -16px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink); color: #fff;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase;
+}
+.fact-quote {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-top: 14px;
+  font-style: italic;
+  font-size: 16px;
+}
+.fact-source { font-style: normal; font-weight: 700; margin-top: 6px; color: var(--primary); font-size: 13px; }
+
+.mnemonic-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 50%, white), var(--accent));
+  border: 4px solid var(--ink);
+  border-radius: 30px;
+  padding: 28px 32px;
+  box-shadow: var(--shadow);
+  max-width: 720px; width: 100%;
+  text-align: center;
+}
+.mnemonic-title {
+  font-family: var(--display);
+  font-size: clamp(34px, 5vw, 50px);
+  margin-bottom: 10px;
+}
+.mnemonic-body {
+  font-size: clamp(18px, 2.4vw, 22px);
+  font-weight: 600; line-height: 1.55;
+}
+
+/* ── Objectives / Takeaway list ──────────────────────────────── */
+.bullet-list { list-style: none; text-align: left; max-width: 620px; }
+.bullet-list li {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 12px 18px;
+  margin-bottom: 10px;
+  font-size: 17px; font-weight: 600;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: var(--shadow-sm);
+  animation: slideIn .55s backwards;
+}
+.bullet-list li:nth-child(1) { animation-delay: .05s; }
+.bullet-list li:nth-child(2) { animation-delay: .18s; }
+.bullet-list li:nth-child(3) { animation-delay: .31s; }
+.bullet-list li:nth-child(4) { animation-delay: .44s; }
+.bullet-list li:nth-child(5) { animation-delay: .57s; }
+.bullet-icon {
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--primary-soft);
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  font-size: 18px;
+}
+
+/* ── I-Do thinking ───────────────────────────────────────────── */
+.thinking-sentence {
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  background: var(--cream);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.thinking-list { text-align: left; max-width: 600px; margin: 0 auto; }
+.thinking-list li {
+  list-style: none;
+  font-size: 16px; line-height: 1.6;
+  padding: 6px 0;
+}
+.thinking-list li strong { color: var(--primary); }
+.thinking-conclusion {
+  margin-top: 14px;
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+/* ── Fill-blank ──────────────────────────────────────────────── */
+.fill-sentence {
+  font-size: clamp(20px, 2.6vw, 26px);
+  font-weight: 600;
+  line-height: 1.7;
+}
+.blank-slot {
+  display: inline-block;
+  min-width: 100px;
+  background: var(--cream);
+  border: 3px dashed var(--ink);
+  border-radius: 12px;
+  padding: 2px 14px;
+  margin: 0 6px;
+  color: rgba(31,43,62,.5);
+  vertical-align: baseline;
+  transition: all .3s;
+}
+.blank-slot.filled {
+  border-style: solid;
+  background: #6DD9A5;
+  color: var(--ink);
+  font-weight: 700;
+}
+.word-options { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+.word-pill {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 700; font-size: 17px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform .12s, box-shadow .12s;
+  user-select: none;
+}
+.word-pill:active { transform: translateY(2px); box-shadow: var(--shadow-press); }
+.word-pill.used { opacity: .35; pointer-events: none; }
+
+/* ── Drag-sort ───────────────────────────────────────────────── */
+.drag-bank {
+  display: flex; gap: 12px;
+  flex-wrap: wrap; justify-content: center;
+  margin: 14px 0;
+  max-width: 920px;
+}
+.drag-card {
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  padding: 10px 18px;
+  cursor: grab;
+  box-shadow: var(--shadow-sm);
+  font-weight: 600; font-size: 16px;
+  touch-action: none;
+  max-width: 280px;
+  transition: transform .25s ease-out;
+  user-select: none;
+}
+.drag-card.dragging {
+  transition: none; z-index: 1000;
+  box-shadow: 0 14px 28px rgba(31,43,62,.25);
+  cursor: grabbing;
+}
+.drag-card.placed { background: var(--primary-soft); border-color: var(--primary); pointer-events: none; }
+.drag-card.rejected { animation: shake .45s; background: #FFD6D6; }
+.dropzone-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  max-width: 920px; width: 100%;
+  margin-top: 12px;
+}
+.drop-zone {
+  border: 4px dashed var(--ink);
+  border-radius: 22px;
+  padding: 18px;
+  min-height: 200px;
+  background: rgba(255,255,255,.5);
+  transition: all .2s;
+}
+.drop-zone.tone-a { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, white); }
+.drop-zone.tone-b { border-color: var(--secondary); background: color-mix(in srgb, var(--secondary) 8%, white); }
+.drop-zone.over { transform: scale(1.03); background: var(--accent); }
+.drop-zone-title {
+  font-size: 18px; font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  font-family: var(--display);
+}
+.drop-zone.tone-a .drop-zone-title { color: var(--primary); }
+.drop-zone.tone-b .drop-zone-title { color: var(--secondary); }
+
+/* ── Story highlight ─────────────────────────────────────────── */
+.story-card {
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  padding: 26px 30px;
+  box-shadow: var(--shadow);
+  max-width: 820px; width: 100%;
+  font-size: clamp(17px, 2vw, 20px);
+  line-height: 1.75;
+}
+.kw-a { background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 8px; font-weight: 700; }
+.kw-b { background: var(--secondary); color: var(--ink); padding: 2px 8px; border-radius: 8px; font-weight: 700; }
+.story-legend {
+  margin-top: 14px;
+  font-size: 14px; opacity: .8;
+  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+}
+.story-legend span {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.story-legend i {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.story-legend .lg-a i { background: var(--primary); }
+.story-legend .lg-b i { background: var(--secondary); }
+
+/* ── Closure / celebration ───────────────────────────────────── */
+.celebration-stars {
+  font-size: 76px;
+  margin: 14px 0;
+  letter-spacing: 14px;
+  text-align: center;
+}
+.celebration-stars span {
+  display: inline-block;
+  animation: starBurst .65s backwards;
+}
+.celebration-stars span:nth-child(1) { animation-delay: .1s; }
+.celebration-stars span:nth-child(2) { animation-delay: .25s; }
+.celebration-stars span:nth-child(3) { animation-delay: .4s; }
+.celebration-stars span:nth-child(4) { animation-delay: .55s; }
+.celebration-stars span:nth-child(5) { animation-delay: .7s; }
+@keyframes starBurst {
+  0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* ── Bottom nav ──────────────────────────────────────────────── */
+.bottom-nav {
+  position: fixed; bottom: 18px;
+  left: 0; right: 0;
+  display: flex; justify-content: space-between;
+  padding: 0 22px;
+  z-index: 50;
+  pointer-events: none;
+}
+.nav-btn {
+  background: var(--primary); color: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 999px;
+  width: 64px; height: 64px;
+  font-size: 26px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .12s, box-shadow .12s;
+  pointer-events: auto;
+  font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { transform: translateY(-2px); }
+.nav-btn:active { transform: translateY(3px); box-shadow: var(--shadow-press); }
+.nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+.nav-btn.next { background: var(--accent); color: var(--ink); }
+
+/* ── Speaker notes drawer ─────────────────────────────────────── */
+.notes-drawer {
+  position: fixed;
+  bottom: 100px; left: 22px; right: 22px;
+  max-width: 820px; margin: 0 auto;
+  background: var(--ink); color: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 16px 22px;
+  box-shadow: var(--shadow);
+  z-index: 40;
+  display: none;
+}
+.notes-drawer.show { display: block; animation: slideIn .3s; }
+.notes-drawer .notes-label {
+  font-size: 11px; letter-spacing: .2em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.notes-drawer .notes-text { font-size: 15px; line-height: 1.55; color: #fff; }
+
+/* ── Toast + confetti ────────────────────────────────────────── */
+.toast {
+  position: fixed; top: 90px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--ink); color: #fff;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-weight: 600; font-size: 15px;
+  z-index: 2000;
+  box-shadow: var(--shadow);
+  animation: toastIn .3s, toastOut .3s 1.7s forwards;
+}
+@keyframes toastIn  { from { opacity: 0; transform: translate(-50%, -16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes toastOut { to   { opacity: 0; transform: translate(-50%, -16px); } }
+.confetti-piece {
+  position: fixed; width: 12px; height: 12px;
+  pointer-events: none; z-index: 9999;
+  animation: confettiFall 2.5s linear forwards;
+}
+@keyframes confettiFall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+/* ── Print / PDF mode ────────────────────────────────────────── */
+@media print {
+  .topbar, .bottom-nav, .notes-drawer, .deco { display: none !important; }
+  .slide { display: block !important; page-break-after: always; height: 100vh; }
+}
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .slide { padding: 88px 18px 110px; }
+  .concept-pair, .examples-grid, .dropzone-grid { grid-template-columns: 1fr; }
+  .nav-btn { width: 54px; height: 54px; font-size: 22px; }
+  .chip-btn { font-size: 12px; padding: 7px 12px; }
+  .brand-chip { padding: 5px 12px 5px 5px; }
+  .brand-chip img { width: 30px; height: 30px; }
+  .brand-chip .brand-text { font-size: 11px; }
+  .section-badge { top: 70px; font-size: 10px; padding: 4px 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="deco deco-1"></div>
+<div class="deco deco-2"></div>
+<div class="deco deco-3"></div>
+<div class="deco deco-4"></div>
+<div class="deco deco-5"></div>
+
+<header class="topbar">
+  <div class="brand-chip">
+    <img src="__LOGO_URL__" alt="Super Sheldon" />
+    <span class="brand-text">Super Sheldon</span>
+  </div>
+  <div class="top-cluster">
+    <button class="chip-btn" id="fullscreenBtn" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
+    <button class="chip-btn" id="notesBtn" aria-label="Toggle speaker notes">Notes</button>
+    <div class="chip-btn star" aria-label="Stars earned"><span>★</span><span id="starCount">0</span></div>
+    <div class="chip-btn counter"><span id="slideNum">1</span> / <span id="slideTotal">1</span></div>
+  </div>
+</header>
+
+<main id="stage" aria-live="polite"></main>
+
+<aside class="notes-drawer" id="notesDrawer" aria-label="Speaker notes">
+  <div class="notes-label">Speaker</div>
+  <p class="notes-text" id="notesText"></p>
+</aside>
+
+<nav class="bottom-nav">
+  <button class="nav-btn" id="prevBtn" aria-label="Previous slide">←</button>
+  <button class="nav-btn next" id="nextBtn" aria-label="Next slide">→</button>
+</nav>
+
+<script id="ss-data" type="application/json">__DATA_JSON__</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  const SLIDES = Array.isArray(DATA.slides) ? DATA.slides : [];
+  const THEME  = DATA.theme || {};
+
+  // ─── Inject mascot SVGs + decoration motifs at runtime ──────
+  const mounts = [
+    ...document.querySelectorAll('.deco'),
+  ];
+  const decos = Array.isArray(THEME.decorations) ? THEME.decorations : [];
+  mounts.forEach((el, i) => { el.innerHTML = decos[i % Math.max(1, decos.length)] || ''; });
+
+  // ─── State + tiny helpers ───────────────────────────────────
+  const state = { i: 0, stars: 0 };
+  const stage = document.getElementById('stage');
+  const $star = document.getElementById('starCount');
+  const $num  = document.getElementById('slideNum');
+  const $tot  = document.getElementById('slideTotal');
+  const $prev = document.getElementById('prevBtn');
+  const $next = document.getElementById('nextBtn');
+  const $notes = document.getElementById('notesDrawer');
+  const $notesText = document.getElementById('notesText');
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  function toast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2100);
+  }
+  function confetti() {
+    const colors = [THEME.accent || '#FFD43B', THEME.primary || '#FF7C6B', THEME.secondary || '#6DD9A5', '#9ED8F5'];
+    for (let i = 0; i < 80; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random()*100 + 'vw';
+      c.style.top = '-20px';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDelay = (Math.random()*.7) + 's';
+      c.style.borderRadius = Math.random() > .5 ? '50%' : '2px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 3500);
+    }
+  }
+  function addStars(n) {
+    state.stars += n;
+    $star.textContent = state.stars;
+    $star.parentElement.style.transform = 'scale(1.18)';
+    setTimeout(() => { $star.parentElement.style.transform = ''; }, 250);
+  }
+
+  // ─── Mascot block helper (uses theme SVGs, NOT emoji) ───────
+  const mascotBlock = (which, text) => {
+    const m = which === 2 ? (THEME.mascot2 || {}) : (THEME.mascot1 || {});
+    const says = text || (which === 2
+      ? `Hi, I'm ${m.name || 'Polly'}! Ready to learn?`
+      : `I'm ${m.name || 'Sheldon'}! Let's go!`);
+    return `
+      <div class="mascot-block">
+        <div class="mascot-svg">${m.svg || ''}</div>
+        <div class="mascot-bubble">${esc(says)}</div>
+      </div>`;
+  };
+
+  // ─── Slide renderers ────────────────────────────────────────
+  const R = {
+    title(s) {
+      return `
+        <span class="section-badge">${esc(s.section || 'Welcome')}</span>
+        <h1 class="display-title">${esc(s.title)}</h1>
+        ${s.subtitle ? `<p class="subtitle">${esc(s.subtitle)}</p>` : ''}
+        <div class="mascot-row">
+          ${mascotBlock(1, s.mascot1Says)}
+          ${mascotBlock(2, s.mascot2Says)}
+        </div>`;
+    },
+    section(s) {
+      return `
+        <span class="section-badge">${esc(s.section || '')}</span>
+        <h1 class="display-title display-md">${esc(s.title || '')}</h1>
+        ${s.body ? `<p class="body-text">${esc(s.body)}</p>` : ''}`;
+    },
+    body(s) {
+      return `
+        <span class="section-badge">${esc(s.section || '')}</span>
+        <div class="big-card">
+          ${s.icon ? `<div style="font-size:54px;line-height:1">${esc(s.icon)}</div>` : ''}
+          ${s.title ? `<h2 class="display-title display-sm" style="margin:12px 0;color:var(--primary);text-shadow:none">${esc(s.title)}</h2>` : ''}
+          <p class="body-text" style="margin:0 auto">${esc(s.body)}</p>
+        </div>
+        ${s.mascotSays ? `<div class="mascot-row" style="margin-top:16px">${mascotBlock(1, s.mascotSays)}</div>` : ''}`;
+    },
+    objectives(s) {
+      const items = (s.items || []).map(it =>
+        `<li><span class="bullet-icon">${esc(it.icon || '★')}</span><span>${esc(it.text)}</span></li>`
+      ).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'Objectives')}</span>
+        <h1 class="display-title display-md">${esc(s.title || "Today's Goals")}</h1>
+        ${s.subtitle ? `<p class="subtitle">${esc(s.subtitle)}</p>` : ''}
+        <ul class="bullet-list">${items}</ul>`;
+    },
+    definition(s) {
+      return `
+        <span class="section-badge">${esc(s.section || 'Definition')}</span>
+        <h1 class="display-title display-md" style="color:var(--primary);text-shadow:4px 4px 0 var(--ink)">${esc(s.title || '')}</h1>
+        <div class="concept-card tone-a" style="max-width:780px">
+          ${s.icon ? `<div class="concept-icon">${esc(s.icon)}</div>` : ''}
+          <div class="concept-name">${esc(s.term)}</div>
+          ${s.formula ? `<div class="concept-formula">${esc(s.formula)}</div>` : ''}
+          <p class="body-text" style="margin:10px auto">${esc(s.meaning)}</p>
+          ${s.example ? `<p class="concept-example">Example: ${esc(s.example)}</p>` : ''}
+        </div>`;
+    },
+    compare(s) {
+      const a = s.left || {}, b = s.right || {};
+      const points = (arr) => (arr || []).map(p => `<li>${esc(p)}</li>`).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'Compare')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Side by Side')}</h1>
+        <div class="concept-pair">
+          <div class="concept-card tone-a">
+            <div class="concept-name">${esc(a.title || '')}</div>
+            ${a.formula ? `<div class="concept-formula">${esc(a.formula)}</div>` : ''}
+            ${a.example ? `<p class="concept-example">${esc(a.example)}</p>` : ''}
+            ${a.points ? `<ul class="concept-points">${points(a.points)}</ul>` : ''}
+          </div>
+          <div class="concept-card tone-b">
+            <div class="concept-name">${esc(b.title || '')}</div>
+            ${b.formula ? `<div class="concept-formula">${esc(b.formula)}</div>` : ''}
+            ${b.example ? `<p class="concept-example">${esc(b.example)}</p>` : ''}
+            ${b.points ? `<ul class="concept-points">${points(b.points)}</ul>` : ''}
+          </div>
+        </div>`;
+    },
+    examples(s) {
+      const items = (s.items || []).map(it =>
+        `<div class="example-card">
+          <span class="example-icon">${esc(it.icon || '★')}</span>
+          <span class="example-text">${esc(it.text)}</span>
+        </div>`
+      ).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'Examples')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Examples')}</h1>
+        ${s.body ? `<p class="body-text" style="margin-bottom:16px">${esc(s.body)}</p>` : ''}
+        <div class="examples-grid">${items}</div>`;
+    },
+    fact(s) {
+      return `
+        <span class="section-badge">${esc(s.section || 'Did You Know?')}</span>
+        <div class="fact-card" style="margin-top:24px">
+          <span class="fact-badge">Did You Know?</span>
+          <p class="body-text" style="margin:6px auto 0;font-weight:600">${esc(s.body)}</p>
+          ${s.quote ? `<div class="fact-quote">"${esc(s.quote)}"${s.source ? `<div class="fact-source">— ${esc(s.source)}</div>` : ''}</div>` : ''}
+        </div>`;
+    },
+    mnemonic(s) {
+      return `
+        <span class="section-badge">${esc(s.section || 'Memory Trick')}</span>
+        <div class="mnemonic-card">
+          <div class="mnemonic-title">${esc(s.title || 'Magic Trick!')}</div>
+          <p class="mnemonic-body">${esc(s.body)}</p>
+        </div>`;
+    },
+    'i-do'(s) {
+      const steps = (s.thinking || []).map((t, i) =>
+        `<li><strong>Step ${i+1}:</strong> ${esc(t)}</li>`
+      ).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'I Do')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Watch Me!')}</h1>
+        <div class="big-card" style="text-align:left">
+          <p class="thinking-sentence" style="text-align:center">${esc(s.sentence)}</p>
+          <ul class="thinking-list">${steps}</ul>
+          <p class="thinking-conclusion" style="text-align:center">${esc(s.conclusion)}</p>
+        </div>`;
+    },
+    quiz(s) {
+      const opts = (s.options || []).map((opt, i) =>
+        `<button class="btn" data-q-i="${i}" data-q-correct="${i === s.correctIndex ? '1' : ''}">${esc(String.fromCharCode(65+i))}. ${esc(opt)}</button>`
+      ).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'Quick Check')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Quick Quiz')}</h1>
+        <div class="quiz-card">
+          ${s.label ? `<span class="quiz-label">${esc(s.label)}</span>` : ''}
+          <p class="quiz-prompt">${esc(s.question)}</p>
+          <div class="quiz-options ${(s.options || []).length > 2 ? 'stacked' : ''}">${opts}</div>
+          <div class="quiz-feedback">${esc(s.explanation || 'Great work!')}</div>
+        </div>`;
+    },
+    'fill-blank'(s) {
+      const pills = (s.options || []).map((opt, i) =>
+        `<div class="word-pill" data-fb-word="${esc(opt)}" data-fb-correct="${i === s.correctIndex ? '1' : ''}">${esc(opt)}</div>`
+      ).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'Fill the Blank')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Fill the Blank!')}</h1>
+        <div class="big-card">
+          <p class="fill-sentence">${esc(s.before)} <span class="blank-slot" data-blank>___</span> ${esc(s.after)}</p>
+          <p style="font-size:14px;margin-top:14px;opacity:.7">Pick the missing word:</p>
+          <div class="word-options">${pills}</div>
+          <div class="quiz-feedback">${esc(s.explanation || 'Perfect!')}</div>
+        </div>`;
+    },
+    'drag-sort'(s) {
+      const bank = (s.items || []).map((it, i) =>
+        `<div class="drag-card" data-type="${esc(it.type)}" data-i="${i}">${esc(it.text)}</div>`
+      ).join('');
+      const z = s.zones || [];
+      return `
+        <span class="section-badge">${esc(s.section || 'Drag & Sort')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Sort Them!')}</h1>
+        ${s.body ? `<p class="body-text" style="font-size:16px;margin-bottom:8px">${esc(s.body)}</p>` : ''}
+        <div class="drag-bank">${bank}</div>
+        <div class="dropzone-grid">
+          <div class="drop-zone tone-a" data-accept="a">
+            <div class="drop-zone-title">${esc(z[0]?.label || 'Group A')}</div>
+          </div>
+          <div class="drop-zone tone-b" data-accept="b">
+            <div class="drop-zone-title">${esc(z[1]?.label || 'Group B')}</div>
+          </div>
+        </div>`;
+    },
+    story(s) {
+      const text = (s.parts || []).map(p => {
+        if (p.tag === 'a') return `<span class="kw-a">${esc(p.text)}</span>`;
+        if (p.tag === 'b') return `<span class="kw-b">${esc(p.text)}</span>`;
+        return esc(p.text);
+      }).join('');
+      const legend = s.legend
+        ? `<p style="font-size:14px;opacity:.7;margin-top:12px;text-align:center">${esc(s.legend)}</p>`
+        : `<p class="story-legend"><span class="lg-a"><i></i> Category A</span><span class="lg-b"><i></i> Category B</span></p>`;
+      return `
+        <span class="section-badge">${esc(s.section || 'Story Time')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'The Story')}</h1>
+        <div class="story-card">${text}</div>
+        ${legend}`;
+    },
+    takeaway(s) {
+      const items = (s.points || []).map(p =>
+        `<li><span class="bullet-icon">${esc(p.icon || '✓')}</span><span>${esc(p.text || p)}</span></li>`
+      ).join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'Key Takeaways')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'Today We Learned')}</h1>
+        <ul class="bullet-list" style="max-width:720px">${items}</ul>`;
+    },
+    hots(s) {
+      return `
+        <span class="section-badge">${esc(s.section || 'Big Brain Time')}</span>
+        <h1 class="display-title display-md">${esc(s.title || 'What if...?')}</h1>
+        <div class="big-card">
+          ${s.icon ? `<div style="font-size:54px">${esc(s.icon)}</div>` : ''}
+          <p class="body-text" style="font-size:22px;margin-top:8px">${esc(s.question)}</p>
+        </div>
+        ${s.mascotSays ? `<div class="mascot-row" style="margin-top:14px">${mascotBlock(1, s.mascotSays)}</div>` : ''}`;
+    },
+    closure(s) {
+      const stars = Math.min(5, Math.max(1, Number(s.stars) || 3));
+      const starStr = Array(stars).fill('<span>★</span>').join('');
+      return `
+        <span class="section-badge">${esc(s.section || 'You Did It!')}</span>
+        <h1 class="display-title">${esc(s.title || 'AMAZING!')}</h1>
+        <div class="celebration-stars">${starStr}</div>
+        <div class="big-card">
+          ${s.body ? `<p class="body-text">${esc(s.body)}</p>` : ''}
+          <div class="mascot-row" style="margin-top:14px">
+            ${mascotBlock(1, s.mascot1Says || 'You were brilliant!')}
+            ${mascotBlock(2, s.mascot2Says || 'See you next lesson!')}
+          </div>
+          <button class="btn go" id="celebrateBtn" style="margin-top:16px">Celebrate</button>
+        </div>`;
+    },
+  };
+
+  // ─── Mount ──────────────────────────────────────────────────
+  stage.innerHTML = SLIDES.map((s, i) => {
+    const renderer = R[s.type] || R.body;
+    return `<section class="slide" data-i="${i}" data-type="${esc(s.type)}">${renderer(s)}</section>`;
+  }).join('');
+  const slideEls = Array.from(stage.querySelectorAll('.slide'));
+  $tot.textContent = slideEls.length;
+
+  // ─── Per-slide wiring ───────────────────────────────────────
+  slideEls.forEach((el, idx) => {
+    const slide = SLIDES[idx];
+
+    // Quiz
+    el.querySelectorAll('.quiz-options .btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.answered) return;
+        const correct = btn.dataset.qCorrect === '1';
+        el.querySelectorAll('.quiz-options .btn').forEach(b => b.dataset.answered = '1');
+        btn.classList.add(correct ? 'correct' : 'wrong');
+        // ALWAYS highlight the correct answer so the learner sees it
+        const right = el.querySelector('[data-q-correct="1"]');
+        if (right) right.classList.add('correct');
+        if (correct) addStars(2);
+        // Show feedback with explicit "the green one is correct" message
+        const fb = el.querySelector('.quiz-feedback');
+        if (fb) {
+          fb.classList.add('show');
+          if (!correct && !fb.dataset.augmented) {
+            fb.dataset.augmented = '1';
+            const note = document.createElement('div');
+            note.style.marginTop = '8px';
+            note.style.fontWeight = '700';
+            note.style.color = '#16A34A';
+            note.textContent = '✓ The green-highlighted option is the correct answer.';
+            fb.appendChild(note);
+          }
+        }
+      });
+    });
+
+    // Fill blank
+    el.querySelectorAll('.word-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        if (pill.classList.contains('used')) return;
+        if (pill.dataset.fbCorrect === '1') {
+          const blank = el.querySelector('[data-blank]');
+          if (blank) { blank.textContent = pill.dataset.fbWord; blank.classList.add('filled'); }
+          el.querySelectorAll('.word-pill').forEach(p => p.classList.add('used'));
+          el.querySelector('.quiz-feedback')?.classList.add('show');
+          addStars(2);
+        } else {
+          pill.style.background = '#FFB8B8';
+          setTimeout(() => pill.style.background = '', 500);
+        }
+      });
+    });
+
+    // Drag sort
+    if (slide?.type === 'drag-sort') {
+      const cards = el.querySelectorAll('.drag-card');
+      const zones = el.querySelectorAll('.drop-zone');
+      cards.forEach(card => makeDraggable(card, zones));
+    }
+
+    // Celebrate
+    el.querySelector('#celebrateBtn')?.addEventListener('click', () => {
+      confetti(); setTimeout(confetti, 500); toast('You did it!');
+    });
+  });
+
+  // Drag-and-drop helper
+  function overlaps(a, b) { return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom); }
+  function makeDraggable(card, zones) {
+    let dragging = false, sx = 0, sy = 0;
+    function down(e) {
+      if (card.classList.contains('placed')) return;
+      dragging = true;
+      const p = e.touches ? e.touches[0] : e;
+      sx = p.clientX; sy = p.clientY;
+      card.classList.add('dragging');
+      e.preventDefault();
+    }
+    function move(e) {
+      if (!dragging) return;
+      const p = e.touches ? e.touches[0] : e;
+      card.style.transform = `translate(${p.clientX - sx}px, ${p.clientY - sy}px) scale(1.05)`;
+      const r = card.getBoundingClientRect();
+      zones.forEach(z => z.classList.toggle('over', overlaps(r, z.getBoundingClientRect())));
+    }
+    function up() {
+      if (!dragging) return;
+      dragging = false;
+      card.classList.remove('dragging');
+      zones.forEach(z => z.classList.remove('over'));
+      const r = card.getBoundingClientRect();
+      let landed = null;
+      zones.forEach(z => { if (overlaps(r, z.getBoundingClientRect())) landed = z; });
+      if (landed) {
+        if (landed.dataset.accept === card.dataset.type) {
+          landed.appendChild(card);
+          card.style.transform = '';
+          card.classList.add('placed');
+          addStars(1);
+        } else {
+          card.classList.add('rejected');
+          toast('Try the other side!');
+          setTimeout(() => { card.classList.remove('rejected'); card.style.transform = ''; }, 450);
+        }
+      } else {
+        card.style.transform = '';
+      }
+    }
+    card.addEventListener('mousedown', down);
+    card.addEventListener('touchstart', down, { passive: false });
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('mouseup', up);
+    window.addEventListener('touchend', up);
+  }
+
+  // ─── Navigation ─────────────────────────────────────────────
+  function show(i) {
+    slideEls.forEach((el, n) => el.classList.toggle('active', n === i));
+    state.i = i;
+    $num.textContent = i + 1;
+    $prev.disabled = i === 0;
+    $next.disabled = i === slideEls.length - 1;
+    $notesText.textContent = SLIDES[i]?.notes || 'No speaker notes for this slide.';
+  }
+  function next() { if (state.i < slideEls.length - 1) show(state.i + 1); }
+  function prev() { if (state.i > 0) show(state.i - 1); }
+  $prev.addEventListener('click', prev);
+  $next.addEventListener('click', next);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') next();
+    else if (e.key === 'ArrowLeft') prev();
+    else if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    else if (e.key === 'n' || e.key === 'N') $notes.classList.toggle('show');
+    else if (e.key === 'Escape') $notes.classList.remove('show');
+  });
+
+  // Touch swipe
+  let touchX = 0, touchY = 0;
+  document.addEventListener('touchstart', e => {
+    touchX = e.changedTouches[0].screenX;
+    touchY = e.changedTouches[0].screenY;
+  });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - touchX;
+    const dy = e.changedTouches[0].screenY - touchY;
+    if (Math.abs(dx) > 60 && Math.abs(dy) < 40) {
+      if (dx < 0) next(); else prev();
+    }
+  });
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+  document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+  document.getElementById('notesBtn').addEventListener('click', () => $notes.classList.toggle('show'));
+
+  show(0);
+})();
+</script>
+</body>
+</html>

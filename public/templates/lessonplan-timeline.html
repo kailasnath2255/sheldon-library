@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Caveat:wght@700&family=Patrick+Hand&family=Orbitron:wght@700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: __PRIMARY__;
+  --primary-soft: __PRIMARY_SOFT__;
+  --accent: __ACCENT__;
+  --secondary: __SECONDARY__;
+  --secondary-soft: __SECONDARY_SOFT__;
+  --ink: __INK__;
+  --cream: __CREAM__;
+  --display: '__DISPLAY_FONT__', 'Caveat', cursive;
+  --body: '__BODY_FONT__', 'Fredoka', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: #F3EEE3;
+  padding: 24px 12px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.sheet {
+  background: #fff;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 36px 44px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(31,43,62,.12);
+}
+
+/* ── Header ───────────────────────────────────────────── */
+.header {
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 16px;
+  margin-bottom: 22px;
+}
+.header img { width: 64px; height: 64px; object-fit: contain; flex-shrink: 0; }
+.head-text { flex: 1; }
+.eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--primary);
+}
+h1.title {
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  margin-top: 2px; line-height: 1.1;
+}
+.subtitle {
+  font-size: 14px; color: rgba(31,43,62,.7);
+  margin-top: 4px;
+}
+.duration-chip {
+  background: var(--accent);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-weight: 700; font-size: 13px;
+}
+
+/* ── Section blocks ────────────────────────────────────── */
+.block { margin-bottom: 26px; page-break-inside: avoid; }
+.block-head {
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 6px; margin-bottom: 10px;
+}
+.block-emoji {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--primary-soft);
+  border: 2px solid var(--ink);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.block-title {
+  font-family: var(--display);
+  font-size: 22px; font-weight: 700;
+  color: var(--primary);
+}
+
+/* Objectives */
+.obj-list { list-style: none; }
+.obj-list li {
+  padding: 8px 0 8px 28px;
+  position: relative;
+  font-size: 15px; line-height: 1.55;
+}
+.obj-list li::before {
+  content: "✓"; position: absolute; left: 0; top: 8px;
+  color: var(--primary); font-weight: 700; font-size: 16px;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  padding-left: 90px;
+}
+.timeline::before {
+  content: "";
+  position: absolute; left: 60px; top: 8px; bottom: 8px;
+  width: 3px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.tl-entry {
+  position: relative;
+  margin-bottom: 12px;
+  page-break-inside: avoid;
+}
+.tl-time {
+  position: absolute; left: -90px; top: 14px;
+  width: 70px;
+  text-align: right;
+  font-weight: 700; font-size: 13px;
+  color: var(--primary);
+}
+.tl-dot {
+  position: absolute; left: -36px; top: 12px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--ink);
+}
+.tl-card {
+  background: #FAFAF7;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+.tl-section {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+.tl-activity {
+  font-size: 15px; font-weight: 600; line-height: 1.5;
+  margin-bottom: 6px;
+}
+.tl-meta {
+  font-size: 13px; color: rgba(31,43,62,.7);
+  margin-bottom: 4px;
+}
+.tl-meta strong { color: var(--ink); font-weight: 700; }
+.tl-notes {
+  background: var(--cream);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* Differentiation */
+.diff-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+}
+.diff-card {
+  background: #FAFAF7;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 12px;
+}
+.diff-card h4 {
+  font-family: var(--display);
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.diff-card.below h4 { color: var(--secondary); }
+.diff-card.at    h4 { color: var(--primary); }
+.diff-card.above h4 { color: var(--ink); }
+.diff-card p { font-size: 13px; line-height: 1.5; }
+
+/* Generic prose block */
+.prose {
+  background: #FAFAF7;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 14px; line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+/* Footer */
+.footer {
+  border-top: 2px dashed rgba(31,43,62,.2);
+  margin-top: 24px;
+  padding-top: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px; color: rgba(31,43,62,.55);
+}
+.brand {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink);
+}
+.brand img { width: 22px; height: 22px; object-fit: contain; }
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .sheet { box-shadow: none; border-radius: 0; margin: 0; max-width: 100%; }
+  .block, .tl-entry { page-break-inside: avoid; }
+}
+@media (max-width: 640px) {
+  .timeline { padding-left: 24px; }
+  .timeline::before { left: 4px; }
+  .tl-dot { left: -22px; width: 14px; height: 14px; }
+  .tl-time { position: static; text-align: left; margin-bottom: 4px; width: auto; }
+  .diff-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="header">
+    <img src="__LOGO_URL__" alt="Super Sheldon" />
+    <div class="head-text">
+      <div class="eyebrow">Super Sheldon · Lesson Plan</div>
+      <h1 class="title" id="lpTitle">Lesson Plan</h1>
+      <div class="subtitle" id="lpSubtitle"></div>
+    </div>
+    <div class="duration-chip" id="lpDuration">— min</div>
+  </div>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-emoji">🎯</span>
+      <div class="block-title">Learning Objectives</div>
+    </div>
+    <ul class="obj-list" id="lpObjectives"></ul>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-emoji">⏱</span>
+      <div class="block-title">Session Timeline</div>
+    </div>
+    <div class="timeline" id="lpTimeline"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-emoji">🌗</span>
+      <div class="block-title">Differentiation</div>
+    </div>
+    <div class="diff-grid" id="lpDiff"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-emoji">📝</span>
+      <div class="block-title">Quick Assessment</div>
+    </div>
+    <div class="prose" id="lpAssessment"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <span class="block-emoji">🏠</span>
+      <div class="block-title">Homework</div>
+    </div>
+    <div class="prose" id="lpHomework"></div>
+  </section>
+
+  <div class="footer">
+    <div class="brand"><img src="__LOGO_URL__" alt="" /><span>Super Sheldon</span></div>
+    <div>Teacher reference · supersheldon.com</div>
+  </div>
+</div>
+
+<script id="ss-data" type="application/json">__DATA_JSON__</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  document.getElementById('lpTitle').textContent = DATA.title || 'Lesson Plan';
+  document.getElementById('lpSubtitle').textContent = DATA.subtitle || '';
+  document.getElementById('lpDuration').textContent = (DATA.durationMin || 55) + ' min';
+
+  const $obj = document.getElementById('lpObjectives');
+  (DATA.objectives || []).forEach(o => {
+    const li = document.createElement('li');
+    li.textContent = o;
+    $obj.appendChild(li);
+  });
+
+  const $tl = document.getElementById('lpTimeline');
+  (DATA.timeline || []).forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tl-entry';
+    div.innerHTML = `
+      <div class="tl-time">${esc(t.time || '')}</div>
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-section">${esc(t.section || '')}</div>
+        <div class="tl-activity">${esc(t.activity || '')}</div>
+        ${t.materials ? `<div class="tl-meta"><strong>Materials:</strong> ${esc(t.materials)}</div>` : ''}
+        ${t.notes ? `<div class="tl-notes">${esc(t.notes)}</div>` : ''}
+      </div>`;
+    $tl.appendChild(div);
+  });
+
+  const d = DATA.differentiation || {};
+  document.getElementById('lpDiff').innerHTML = `
+    <div class="diff-card below"><h4>Below</h4><p>${esc(d.below || '—')}</p></div>
+    <div class="diff-card at"><h4>At grade</h4><p>${esc(d.at || '—')}</p></div>
+    <div class="diff-card above"><h4>Above</h4><p>${esc(d.above || '—')}</p></div>`;
+
+  document.getElementById('lpAssessment').textContent = DATA.assessment || '—';
+  document.getElementById('lpHomework').textContent = DATA.homework || '—';
+})();
+</script>
+</body>
+</html>

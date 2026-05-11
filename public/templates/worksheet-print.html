@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Caveat:wght@700&family=Patrick+Hand&family=Orbitron:wght@700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: __PRIMARY__;
+  --primary-soft: __PRIMARY_SOFT__;
+  --accent: __ACCENT__;
+  --secondary: __SECONDARY__;
+  --secondary-soft: __SECONDARY_SOFT__;
+  --ink: __INK__;
+  --cream: __CREAM__;
+  --display: '__DISPLAY_FONT__', 'Caveat', cursive;
+  --body: '__BODY_FONT__', 'Fredoka', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--body);
+  color: var(--ink);
+  background: #F3EEE3;
+  padding: 24px 12px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* The A4-ish sheet */
+.sheet {
+  background: #fff;
+  max-width: 800px;
+  margin: 0 auto 24px;
+  padding: 36px 44px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(31,43,62,.12);
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.header {
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 3px solid var(--ink);
+  padding-bottom: 16px; margin-bottom: 18px;
+}
+.header img {
+  width: 64px; height: 64px; object-fit: contain;
+  flex-shrink: 0;
+}
+.header .head-text { flex: 1; }
+.eyebrow {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--primary);
+}
+.header h1 {
+  font-family: var(--display);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 2px;
+  line-height: 1.1;
+}
+.header .subtitle {
+  font-size: 14px;
+  color: rgba(31,43,62,.7);
+  margin-top: 4px;
+}
+
+/* Name + Date row */
+.meta-row {
+  display: flex; gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.meta-field {
+  flex: 1; min-width: 200px;
+  border-bottom: 2px dotted var(--ink);
+  padding: 4px 4px 4px 0;
+  font-size: 14px;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.meta-field strong { font-weight: 700; }
+.meta-field .blank { flex: 1; }
+
+/* Intro */
+.intro {
+  background: var(--primary-soft);
+  border-left: 5px solid var(--primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-style: italic;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+
+/* ── Section ─────────────────────────────────────────────── */
+.section {
+  margin-bottom: 24px;
+  page-break-inside: avoid;
+}
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 10px;
+}
+.section-badge {
+  background: var(--ink); color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: var(--display);
+  font-size: 22px; font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.section-instructions {
+  font-size: 13px;
+  color: rgba(31,43,62,.7);
+  font-style: italic;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+/* ── Items per type ──────────────────────────────────────── */
+.item {
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #FAFAF7;
+  border: 1.5px solid rgba(31,43,62,.15);
+  font-size: 15px;
+  line-height: 1.5;
+  page-break-inside: avoid;
+}
+.item-q { font-weight: 600; margin-bottom: 6px; }
+
+/* MCQ */
+.mcq-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 16px;
+  margin-top: 4px;
+}
+.mcq-option { display: flex; align-items: center; gap: 8px; }
+.mcq-circle {
+  width: 18px; height: 18px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Fill blank */
+.fb-sentence {
+  font-size: 15px; line-height: 1.7;
+}
+.fb-blank {
+  display: inline-block;
+  min-width: 110px;
+  border-bottom: 2px solid var(--ink);
+  margin: 0 4px;
+}
+
+/* Match */
+.match-table {
+  display: grid;
+  grid-template-columns: auto 1fr 30px 1fr;
+  gap: 6px 12px;
+  align-items: center;
+  font-size: 15px;
+}
+.match-table .left,
+.match-table .right {
+  padding: 6px 10px;
+  background: #fff;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+}
+.match-table .num {
+  width: 24px; height: 24px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px;
+}
+.match-table .arrow { text-align: center; font-weight: 700; opacity: .4; }
+
+/* Short answer */
+.sa-lines {
+  border-bottom: 1.5px solid rgba(31,43,62,.5);
+  margin-top: 8px;
+  height: 22px;
+}
+.sa-lines + .sa-lines { margin-top: 6px; }
+
+/* True/False */
+.tf-row {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: 4px;
+}
+.tf-pill {
+  border: 2px solid var(--ink);
+  border-radius: 20px;
+  padding: 2px 14px;
+  font-size: 13px; font-weight: 700;
+}
+
+/* Creative */
+.creative-prompt { font-weight: 600; }
+.creative-area {
+  margin-top: 8px;
+  border: 1.5px dashed var(--ink);
+  border-radius: 8px;
+  min-height: 90px;
+  padding: 10px;
+  font-size: 13px;
+  color: rgba(31,43,62,.4);
+  font-style: italic;
+}
+
+/* Decorative challenge tag */
+.challenge-tag {
+  display: inline-block;
+  background: var(--accent);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .1em;
+  margin-left: 8px;
+}
+
+/* ── Footer (brand + page) ───────────────────────────────── */
+.footer {
+  border-top: 2px dashed rgba(31,43,62,.2);
+  margin-top: 24px;
+  padding-top: 14px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 12px;
+  color: rgba(31,43,62,.55);
+}
+.footer .brand {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink);
+}
+.footer .brand img { width: 22px; height: 22px; object-fit: contain; }
+
+/* Answer key (teacher copy) */
+.answer-key {
+  background: var(--cream);
+  border: 3px dashed var(--ink);
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-top: 18px;
+}
+.answer-key h3 {
+  font-family: var(--display);
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: var(--primary);
+}
+.ak-section { margin-bottom: 12px; }
+.ak-section h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .12em; color: var(--ink); margin-bottom: 4px; }
+.ak-list { padding-left: 18px; font-size: 14px; line-height: 1.6; }
+
+/* Print */
+@media print {
+  body { background: #fff; padding: 0; }
+  .sheet { box-shadow: none; border-radius: 0; margin: 0; max-width: 100%; }
+  .section, .item { page-break-inside: avoid; }
+  .answer-key { page-break-before: always; }
+}
+
+@media (max-width: 640px) {
+  .sheet { padding: 22px 18px; }
+  .header { gap: 12px; }
+  .header img { width: 50px; height: 50px; }
+  .mcq-options { grid-template-columns: 1fr; }
+  .match-table { grid-template-columns: auto 1fr; }
+  .match-table .arrow, .match-table .right { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="sheet" id="sheet">
+  <div class="header">
+    <img src="__LOGO_URL__" alt="Super Sheldon" />
+    <div class="head-text">
+      <div class="eyebrow">Super Sheldon · Worksheet</div>
+      <h1 id="wsTitle">Worksheet</h1>
+      <div class="subtitle" id="wsSubtitle"></div>
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <div class="meta-field"><strong id="lblName">Name:</strong> <span class="blank"></span></div>
+    <div class="meta-field"><strong id="lblDate">Date:</strong> <span class="blank"></span></div>
+  </div>
+
+  <div class="intro" id="wsIntro"></div>
+
+  <div id="sections"></div>
+
+  <div class="footer">
+    <div class="brand"><img src="__LOGO_URL__" alt="" /><span>Super Sheldon Library</span></div>
+    <div>Made with care · supersheldon.com</div>
+  </div>
+</div>
+
+<div class="sheet answer-key" id="answerKey" style="display:none">
+  <h3>📋 Teacher's Answer Key</h3>
+  <div id="akBody"></div>
+  <div class="footer">
+    <div class="brand"><img src="__LOGO_URL__" alt="" /><span>Super Sheldon Library</span></div>
+    <div>Teacher copy</div>
+  </div>
+</div>
+
+<script id="ss-data" type="application/json">__DATA_JSON__</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const sections = Array.isArray(DATA.sections) ? DATA.sections : [];
+
+  document.getElementById('wsTitle').textContent = DATA.title || 'Worksheet';
+  document.getElementById('wsSubtitle').textContent = DATA.subtitle || '';
+  document.getElementById('wsIntro').textContent = DATA.intro || '';
+  document.getElementById('lblName').textContent = (DATA.studentNameLabel || 'Name') + ':';
+  document.getElementById('lblDate').textContent = (DATA.dateLabel || 'Date') + ':';
+
+  const $sections = document.getElementById('sections');
+
+  const renderers = {
+    mcq(item, n) {
+      const opts = (item.options || []).map((o, i) => `
+        <div class="mcq-option">
+          <span class="mcq-circle"></span>
+          <span><strong>${String.fromCharCode(65+i)}.</strong> ${esc(o)}</span>
+        </div>`).join('');
+      return `
+        <div class="item">
+          <div class="item-q"><strong>${n}.</strong> ${esc(item.question)}</div>
+          <div class="mcq-options">${opts}</div>
+        </div>`;
+    },
+    'fill-blank'(item, n) {
+      const sentence = esc(item.sentence || '').replace(/___/g, '<span class="fb-blank">&nbsp;</span>');
+      return `<div class="item"><div class="fb-sentence"><strong>${n}.</strong> ${sentence}</div></div>`;
+    },
+    match(items, _n) {
+      // items here is the whole section.items array — we treat it as a single table
+      const lefts = items.map((p, i) => `
+        <span class="num">${i+1}</span>
+        <span class="left">${esc(p.left)}</span>
+        <span class="arrow">→</span>
+        <span class="right">${esc(p.right)}</span>`).join('');
+      return `<div class="item"><div class="match-table">${lefts}</div></div>`;
+    },
+    'short-answer'(item, n) {
+      return `
+        <div class="item">
+          <div class="item-q"><strong>${n}.</strong> ${esc(item.question)}</div>
+          <div class="sa-lines"></div>
+          <div class="sa-lines"></div>
+          <div class="sa-lines"></div>
+        </div>`;
+    },
+    'true-false'(item, n) {
+      return `
+        <div class="item">
+          <div class="item-q"><strong>${n}.</strong> ${esc(item.statement)}</div>
+          <div class="tf-row">
+            <span class="tf-pill">○ True</span>
+            <span class="tf-pill">○ False</span>
+          </div>
+        </div>`;
+    },
+    creative(item, n) {
+      const lines = Math.max(3, Math.min(8, item.lines || 4));
+      return `
+        <div class="item">
+          <div class="creative-prompt"><strong>${n}.</strong> <span class="challenge-tag">Brain Boost</span> ${esc(item.prompt)}</div>
+          <div class="creative-area" style="min-height:${lines * 22}px"></div>
+        </div>`;
+    },
+  };
+
+  sections.forEach((sec, sIdx) => {
+    const section = document.createElement('div'); section.className = 'section';
+    let inner = `
+      <div class="section-header">
+        <span class="section-badge">Section ${String.fromCharCode(65 + sIdx)}</span>
+        <h3 class="section-title">${esc(sec.title || '')}</h3>
+      </div>`;
+    if (sec.instructions) inner += `<div class="section-instructions">${esc(sec.instructions)}</div>`;
+
+    if (sec.type === 'match') {
+      // single matching table for the entire section
+      inner += renderers.match(sec.items || [], 1);
+    } else {
+      const fn = renderers[sec.type] || ((it, n) => `<div class="item"><strong>${n}.</strong> ${esc(JSON.stringify(it))}</div>`);
+      inner += (sec.items || []).map((it, i) => fn(it, i + 1)).join('');
+    }
+    section.innerHTML = inner;
+    $sections.appendChild(section);
+  });
+
+  // Answer key (teacher mode)
+  if (DATA.showAnswerKey) {
+    const ak = document.getElementById('answerKey');
+    const body = document.getElementById('akBody');
+    body.innerHTML = sections.map((sec, sIdx) => {
+      const items = (sec.items || []).map((it, i) => {
+        if (sec.type === 'mcq') return `<li>${esc(it.question)} — <strong>${esc(it.answer)}</strong></li>`;
+        if (sec.type === 'fill-blank') return `<li>${esc((it.sentence || '').replace(/___/g, '____'))} — <strong>${esc(it.answer)}</strong></li>`;
+        if (sec.type === 'match') return `<li><strong>${esc(it.left)}</strong> ↔ <strong>${esc(it.right)}</strong></li>`;
+        if (sec.type === 'short-answer') return `<li>${esc(it.question)} — <em>${esc(it.answer)}</em></li>`;
+        if (sec.type === 'true-false') return `<li>${esc(it.statement)} — <strong>${esc(it.answer)}</strong></li>`;
+        if (sec.type === 'creative') return `<li>${esc(it.prompt)} — <em>(open-ended)</em></li>`;
+        return `<li>${esc(JSON.stringify(it))}</li>`;
+      }).join('');
+      return `<div class="ak-section"><h4>Section ${String.fromCharCode(65+sIdx)} — ${esc(sec.title || '')}</h4><ol class="ak-list">${items}</ol></div>`;
+    }).join('');
+    ak.style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>

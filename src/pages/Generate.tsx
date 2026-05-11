@@ -43,6 +43,11 @@ import PresentationRenderer from "@/components/renderers/PresentationRenderer";
 import GameRenderer from "@/components/renderers/GameRenderer";
 import HTMLContentRenderer from "@/components/renderers/HTMLContentRenderer";
 import MarkdownContentRenderer from "@/components/renderers/MarkdownContentRenderer";
+import TemplatedPresentationRenderer from "@/components/renderers/TemplatedPresentationRenderer";
+import TemplatedGameRenderer from "@/components/renderers/TemplatedGameRenderer";
+import TemplatedWorksheetRenderer from "@/components/renderers/TemplatedWorksheetRenderer";
+import TemplatedLessonPlanRenderer from "@/components/renderers/TemplatedLessonPlanRenderer";
+import TemplatedQuizRenderer from "@/components/renderers/TemplatedQuizRenderer";
 
 import {
   analyzeDiagnostic,
@@ -391,6 +396,16 @@ export default function Generate() {
       if (data.format === "markdown" && typeof data.markdown === "string") {
         return <MarkdownContentRenderer markdown={data.markdown} title={output.type} />;
       }
+      // Templated content (template-v1) — dispatch to iframe renderers
+      if (data.format === "template-v1" && typeof data.template === "string") {
+        if (data.template === "presentation-classic" || data.template === "presentation-academic") {
+          return <TemplatedPresentationRenderer data={data} />;
+        }
+        if (data.template === "game-arcade") return <TemplatedGameRenderer data={data} />;
+        if (data.template === "worksheet-print") return <TemplatedWorksheetRenderer data={data} />;
+        if (data.template === "lessonplan-timeline") return <TemplatedLessonPlanRenderer data={data} />;
+        if (data.template === "quiz-live") return <TemplatedQuizRenderer data={data} />;
+      }
     }
 
     // After flexible-format check, output.data is the structured shape.
@@ -634,7 +649,11 @@ export default function Generate() {
                     ? `Fill the brief and tap Generate ${TOOL_INFO[tool].label}.`
                     : "Pick a tool to begin."
                 }
-                action={<OwlMascot size={120} />}
+                action={
+                  <div className="flex flex-col items-center gap-4">
+                    <OwlMascot size={120} />
+                  </div>
+                }
               />
             )}
           </div>

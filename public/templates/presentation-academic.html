@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; width: 100%; overflow: hidden; background: #020617; color: #f1f5f9; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+body { display: flex; align-items: center; justify-content: center; }
+
+/* 16:9 stage that fits the viewport */
+#stage {
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  position: relative;
+  overflow: hidden;
+  background: #020617;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 3.5% 6%;
+  text-align: center;
+}
+.slide.active { display: flex; animation: fadeIn .35s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+h1, h2, h3, h4 { font-family: 'Fraunces', Georgia, serif; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+h1 { font-size: clamp(2rem, 5vw, 4.2rem); margin-bottom: .4rem; }
+h2 { font-size: clamp(1.6rem, 3.5vw, 2.7rem); margin-bottom: .6rem; position: relative; z-index: 2; }
+h3 { font-size: clamp(.95rem, 1.4vw, 1.15rem); margin: .4rem 0 .2rem; color: #fff; }
+p  { font-size: clamp(.9rem, 1.25vw, 1.05rem); line-height: 1.55; position: relative; z-index: 2; }
+
+/* Top-right section chip */
+.section-pill {
+  position: absolute; top: 3%; right: 4%;
+  padding: .35em 1em;
+  border-radius: 999px;
+  font-size: .7rem; font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase;
+  border: 1px solid;
+  background: rgba(0, 0, 0, .3);
+  z-index: 5;
+}
+
+/* Brand chip — bottom-right corner, on every slide */
+.brand-chip {
+  position: absolute; bottom: 3%; right: 4%;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 999px;
+  font-size: .68rem; font-weight: 700;
+  letter-spacing: .15em; text-transform: uppercase;
+  color: rgba(241,245,249,.85);
+  z-index: 5;
+}
+.brand-chip img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; }
+
+/* Section label below title */
+.section-label {
+  display: flex; align-items: center; justify-content: center;
+  gap: .5em;
+  font-size: .78rem; font-weight: 700;
+  letter-spacing: .2em; text-transform: uppercase;
+  margin-bottom: 1rem;
+  position: relative; z-index: 2;
+}
+
+/* Decorative blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: .4;
+  pointer-events: none;
+  filter: blur(.5px);
+}
+.blob.tr { top: -8%; right: -8%; width: 32%; aspect-ratio: 1; }
+.blob.bl { bottom: -10%; left: -10%; width: 28%; aspect-ratio: 1; }
+
+/* Subject motifs — floating background decorations (numbers / atoms / books / etc) */
+.subject-motif {
+  position: absolute;
+  pointer-events: none;
+  opacity: .14;
+  z-index: 1;
+  animation: motifFloat 14s ease-in-out infinite;
+}
+.subject-motif svg { width: 100%; height: 100%; display: block; }
+.subject-motif.m1 { top: 10%;   left: 6%;   width: 60px; height: 60px; color: currentColor; animation-delay: 0s; }
+.subject-motif.m2 { top: 15%;   right: 10%; width: 70px; height: 70px; animation-delay: -3s; }
+.subject-motif.m3 { bottom: 22%; left: 9%;  width: 56px; height: 56px; animation-delay: -6s; }
+.subject-motif.m4 { bottom: 14%; right: 8%; width: 64px; height: 64px; animation-delay: -9s; }
+@keyframes motifFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-12px) rotate(6deg); }
+}
+
+/* Section background gradients */
+.s-title    { background: linear-gradient(135deg, #1e1b4b, #312e81 50%, #1e1b4b); }
+.s-ice      { background: linear-gradient(135deg, #1f0a1a, #4a1d2c 50%, #1f0a1a); }
+.s-warm     { background: linear-gradient(135deg, #1a0f00, #3d2400 50%, #1a0f00); }
+.s-obj      { background: linear-gradient(135deg, #022c2b, #064e4c 50%, #022c2b); }
+.s-def      { background: linear-gradient(135deg, #1e1b4b, #4c1d95 50%, #1e1b4b); }
+.s-exp      { background: linear-gradient(135deg, #082f49, #0c4a6e 50%, #082f49); }
+.s-act      { background: linear-gradient(135deg, #022c22, #064e3b 50%, #022c22); }
+.s-skill    { background: linear-gradient(135deg, #2e1065, #581c87 50%, #2e1065); }
+.s-assess   { background: linear-gradient(135deg, #2a1605, #4a2a0d 50%, #2a1605); }
+.s-take     { background: linear-gradient(135deg, #022c2b, #155e75 50%, #022c2b); }
+.s-closure  { background: linear-gradient(135deg, #2a0a23, #5a1546 50%, #2a0a23); }
+
+/* Section accent colours */
+.s-title   .blob { background: radial-gradient(circle, #a78bfa, transparent 70%); } .s-title   .section-pill, .s-title   .section-label { color: #a78bfa; border-color: rgba(167,139,250,.4); }
+.s-ice     .blob { background: radial-gradient(circle, #fb7185, transparent 70%); } .s-ice     .section-pill, .s-ice     .section-label { color: #fb7185; border-color: rgba(251,113,133,.4); }
+.s-warm    .blob { background: radial-gradient(circle, #fbbf24, transparent 70%); } .s-warm    .section-pill, .s-warm    .section-label { color: #fbbf24; border-color: rgba(251,191,36,.4); }
+.s-obj     .blob { background: radial-gradient(circle, #5eead4, transparent 70%); } .s-obj     .section-pill, .s-obj     .section-label { color: #5eead4; border-color: rgba(94,234,212,.4); }
+.s-def     .blob { background: radial-gradient(circle, #a78bfa, transparent 70%); } .s-def     .section-pill, .s-def     .section-label { color: #a78bfa; border-color: rgba(167,139,250,.4); }
+.s-exp     .blob { background: radial-gradient(circle, #38bdf8, transparent 70%); } .s-exp     .section-pill, .s-exp     .section-label { color: #38bdf8; border-color: rgba(56,189,248,.4); }
+.s-act     .blob { background: radial-gradient(circle, #34d399, transparent 70%); } .s-act     .section-pill, .s-act     .section-label { color: #34d399; border-color: rgba(52,211,153,.4); }
+.s-skill   .blob { background: radial-gradient(circle, #e879f9, transparent 70%); } .s-skill   .section-pill, .s-skill   .section-label { color: #e879f9; border-color: rgba(232,121,249,.4); }
+.s-assess  .blob { background: radial-gradient(circle, #fb923c, transparent 70%); } .s-assess  .section-pill, .s-assess  .section-label { color: #fb923c; border-color: rgba(251,146,60,.4); }
+.s-take    .blob { background: radial-gradient(circle, #22d3ee, transparent 70%); } .s-take    .section-pill, .s-take    .section-label { color: #22d3ee; border-color: rgba(34,211,238,.4); }
+.s-closure .blob { background: radial-gradient(circle, #f472b6, transparent 70%); } .s-closure .section-pill, .s-closure .section-label { color: #f472b6; border-color: rgba(244,114,182,.4); }
+
+.title-emoji { font-size: clamp(4rem, 8vw, 7rem); margin: .2rem 0 .8rem; position: relative; z-index: 2; }
+
+/* Generic cards */
+.card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: .9rem 1.2rem; position: relative; z-index: 2; width: 92%; }
+
+/* Tell (pink) / show (green) tone cards used for compare and contrasted content */
+.tell-card, .show-card { padding: .7rem 1rem; border-radius: 14px; text-align: left; position: relative; z-index: 2; }
+.tell-card { background: rgba(251,113,133,.06); border: 1px solid rgba(251,113,133,.3); }
+.show-card { background: rgba(52,211,153,.06); border: 1px solid rgba(52,211,153,.3); }
+.tell-card .lbl, .show-card .lbl { display: block; font-size: .7rem; letter-spacing: .15em; text-transform: uppercase; font-weight: 700; margin-bottom: .25rem; }
+.tell-card .lbl { color: #fb7185; }
+.show-card .lbl { color: #34d399; }
+.tell-card p, .show-card p { font-size: .88rem; line-height: 1.4; }
+
+.tip-bar {
+  margin-top: .5rem;
+  padding: .55rem .9rem;
+  border-radius: 10px;
+  font-size: .85rem;
+  background: rgba(251,191,36,.1);
+  border: 1px solid rgba(251,191,36,.3);
+  color: #fde68a;
+  position: relative; z-index: 2;
+  max-width: 92%;
+}
+
+/* Examples grid */
+.examples-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .55rem; width: 96%; position: relative; z-index: 2; }
+.examples-grid.cols3 { grid-template-columns: repeat(3, 1fr); }
+.example-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  padding: .6rem .8rem;
+  display: flex; align-items: center; gap: .6rem;
+  text-align: left;
+}
+.example-icon { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+.example-text { font-size: .82rem; font-weight: 500; line-height: 1.4; }
+
+/* Compare two-column */
+.compare-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; width: 96%; position: relative; z-index: 2; }
+.compare-card { padding: .65rem .9rem; border-radius: 14px; text-align: left; }
+.compare-card .head { display: flex; align-items: center; gap: .5rem; margin-bottom: .25rem; }
+.compare-card .ttl { font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
+.compare-card .ex  { font-size: .72rem; opacity: .85; font-style: italic; margin-top: .25rem; }
+.compare-card.tone-a { background: rgba(251,113,133,.06); border: 1px solid rgba(251,113,133,.35); } .compare-card.tone-a .ttl { color: #fb7185; }
+.compare-card.tone-b { background: rgba(94,234,212,.06);  border: 1px solid rgba(94,234,212,.35); } .compare-card.tone-b .ttl { color: #5eead4; }
+
+/* Objectives / takeaway checklist */
+.checklist {
+  display: flex; flex-direction: column; gap: .45rem;
+  width: 92%; position: relative; z-index: 2;
+}
+.checklist-item {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .55rem .85rem;
+  background: rgba(94,234,212,.06);
+  border: 1px solid rgba(94,234,212,.3);
+  border-radius: 10px;
+  text-align: left;
+  font-size: .88rem;
+  cursor: pointer;
+  transition: all .2s;
+}
+.checklist-item:hover { background: rgba(94,234,212,.12); }
+.checklist-item.checked { background: rgba(94,234,212,.18); }
+.checklist-item .box {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(94,234,212,.6);
+  border-radius: 5px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #5eead4;
+  font-weight: 900;
+}
+.checklist-item.checked .box { background: #5eead4; color: #fff; }
+.checklist-item.checked .box::after { content: "✓"; }
+
+/* Activity badge */
+.activity-badge {
+  display: inline-block;
+  padding: .4rem 1rem;
+  border-radius: 999px;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: .05em;
+  margin-bottom: .5rem;
+  position: relative; z-index: 2;
+}
+.activity-badge.idoo  { background: rgba(52,211,153,.15);  border: 1px solid rgba(52,211,153,.5);  color: #34d399; }
+.activity-badge.wedo  { background: rgba(251,191,36,.15);  border: 1px solid rgba(251,191,36,.5);  color: #fbbf24; }
+.activity-badge.youdo { background: rgba(56,189,248,.15);  border: 1px solid rgba(56,189,248,.5);  color: #38bdf8; }
+
+/* Quiz */
+.q-options {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .5rem;
+  width: 92%; margin: .6rem 0;
+  position: relative; z-index: 2;
+}
+.q-option {
+  padding: .7rem 1rem;
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: .9rem;
+  transition: all .2s;
+  user-select: none;
+}
+.q-option:hover { border-color: rgba(251,191,36,.5); background: rgba(251,191,36,.06); }
+.q-option.correct { background: rgba(52,211,153,.18);  border-color: #34d399; }
+.q-option.wrong   { background: rgba(251,113,133,.18); border-color: #fb7185; }
+.q-option.disabled { pointer-events: none; }
+.q-feedback {
+  font-size: .92rem; margin-top: .3rem;
+  min-height: 1.2em;
+  position: relative; z-index: 2;
+  font-weight: 600;
+}
+.q-feedback.correct { color: #34d399; }
+.q-feedback.wrong   { color: #fb7185; }
+
+/* Reveal buttons + content */
+.reveal-btn {
+  background: rgba(251,191,36,.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,.4);
+  padding: .4rem 1rem;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+  margin: .5rem auto 0;
+  display: inline-block;
+  position: relative; z-index: 3;
+}
+.reveal-btn:hover { background: rgba(251,191,36,.25); transform: translateY(-1px); }
+.reveal-btn.revealed { display: none; }
+.reveal-block {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .4s ease, opacity .3s ease;
+  position: relative; z-index: 2;
+  width: 92%;
+}
+.reveal-block.revealed { max-height: 800px; opacity: 1; margin-top: .4rem; }
+.reveal-text {
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .4s ease, opacity .3s ease;
+  font-size: .86rem; color: #fde68a;
+  padding: 0; margin: 0;
+  position: relative; z-index: 2;
+}
+.reveal-text.revealed {
+  max-height: 400px; opacity: 1;
+  padding: .45rem .75rem;
+  margin-top: .3rem;
+  background: rgba(251,191,36,.08);
+  border: 1px solid rgba(251,191,36,.25);
+  border-radius: 8px;
+  text-align: left;
+}
+
+/* Definition specific */
+.def-term {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  margin-bottom: .25rem;
+}
+.def-formula {
+  background: rgba(251,191,36,.1);
+  border: 1px solid rgba(251,191,36,.35);
+  border-radius: 999px;
+  padding: .3rem 1rem;
+  font-size: .8rem; font-weight: 700;
+  letter-spacing: .08em;
+  display: inline-block;
+  margin: .4rem 0;
+}
+.def-meaning { font-size: 1rem; line-height: 1.55; }
+.def-example { font-size: .82rem; font-style: italic; opacity: .8; margin-top: .35rem; }
+
+/* Story */
+.story-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 14px;
+  padding: 1rem 1.4rem;
+  width: 96%;
+  font-size: clamp(.9rem, 1.4vw, 1.05rem);
+  line-height: 1.7;
+  text-align: left;
+  position: relative; z-index: 2;
+}
+.kw-a { background: rgba(251,113,133,.3); color: #fff; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+.kw-b { background: rgba(52,211,153,.3); color: #fff;  padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+
+/* Fill-blank */
+.fb-sentence { font-size: clamp(1rem, 2vw, 1.3rem); line-height: 1.7; }
+.fb-slot {
+  display: inline-block;
+  min-width: 110px;
+  background: rgba(251,191,36,.1);
+  border: 2px dashed rgba(251,191,36,.5);
+  border-radius: 10px;
+  padding: 2px 14px;
+  margin: 0 6px;
+  color: rgba(251,191,36,.6);
+}
+.fb-slot.filled {
+  background: rgba(52,211,153,.25);
+  border-style: solid;
+  border-color: #34d399;
+  color: #fff;
+  font-weight: 700;
+}
+.word-pills { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: .8rem; position: relative; z-index: 2; }
+.word-pill {
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 999px;
+  padding: .5rem 1rem;
+  font-weight: 700; font-size: .9rem;
+  cursor: pointer; user-select: none;
+  transition: transform .12s, background .2s;
+}
+.word-pill:hover { background: rgba(251,191,36,.15); border-color: rgba(251,191,36,.5); }
+.word-pill.used { opacity: .35; pointer-events: none; }
+
+/* Drag-sort: keep it simple (tap-to-place) for academic style */
+.drag-bank { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center; width: 96%; margin-bottom: .7rem; position: relative; z-index: 2; }
+.drag-card {
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 10px;
+  padding: .5rem 1rem;
+  font-size: .88rem; font-weight: 600;
+  cursor: pointer; user-select: none;
+  transition: transform .12s;
+}
+.drag-card:hover { transform: translateY(-1px); border-color: rgba(251,191,36,.5); }
+.drag-card.selected { background: rgba(251,191,36,.18); border-color: #fbbf24; }
+.drag-card.placed-a { background: rgba(251,113,133,.18); border-color: rgba(251,113,133,.5); pointer-events: none; }
+.drag-card.placed-b { background: rgba(52,211,153,.18); border-color: rgba(52,211,153,.5); pointer-events: none; }
+.dropzone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; width: 96%; position: relative; z-index: 2; }
+.drop-zone {
+  border: 2px dashed;
+  border-radius: 14px;
+  padding: .6rem;
+  min-height: 80px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.drop-zone.zone-a { border-color: rgba(251,113,133,.4); background: rgba(251,113,133,.05); }
+.drop-zone.zone-b { border-color: rgba(52,211,153,.4);  background: rgba(52,211,153,.05);  }
+.drop-zone:hover { background: rgba(251,191,36,.1); }
+.drop-zone .lbl { font-size: .78rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .35rem; }
+.drop-zone.zone-a .lbl { color: #fb7185; }
+.drop-zone.zone-b .lbl { color: #5eead4; }
+
+/* Mnemonic / trick card */
+.trick-card {
+  background: linear-gradient(135deg, rgba(251,191,36,.15), rgba(251,113,133,.15));
+  border: 1.5px solid rgba(251,191,36,.5);
+  border-radius: 18px;
+  padding: 1.2rem 1.6rem;
+  text-align: center;
+  position: relative; z-index: 2;
+  max-width: 96%;
+}
+.trick-card .label { font-size: .72rem; letter-spacing: .25em; text-transform: uppercase; color: #fbbf24; font-weight: 700; margin-bottom: .4rem; }
+.trick-card .body { font-size: clamp(1rem, 1.7vw, 1.25rem); font-weight: 600; line-height: 1.5; color: #fff; }
+
+/* Fact / did-you-know */
+.fact-card {
+  background: rgba(56,189,248,.08);
+  border: 1px solid rgba(56,189,248,.35);
+  border-radius: 16px;
+  padding: 1rem 1.3rem;
+  position: relative; z-index: 2;
+  width: 96%;
+}
+.fact-card .label { font-size: .72rem; letter-spacing: .25em; text-transform: uppercase; color: #38bdf8; font-weight: 700; margin-bottom: .4rem; }
+.fact-card .body { font-size: 1rem; font-weight: 600; line-height: 1.5; }
+.fact-card .quote { margin-top: .55rem; padding: .5rem .75rem; background: rgba(255,255,255,.05); border-radius: 10px; font-style: italic; font-size: .85rem; }
+.fact-card .source { font-style: normal; font-weight: 700; color: #38bdf8; margin-top: .25rem; display: block; font-size: .78rem; }
+
+/* I-do thinking */
+.thinking-sentence {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 12px;
+  padding: .8rem 1rem;
+  font-size: 1rem; font-weight: 600;
+  margin-bottom: .6rem;
+  width: 96%;
+  position: relative; z-index: 2;
+}
+.thinking-list {
+  list-style: none;
+  width: 96%;
+  position: relative; z-index: 2;
+}
+.thinking-list li {
+  font-size: .9rem;
+  padding: .25rem 0;
+  text-align: left;
+  line-height: 1.55;
+}
+.thinking-conclusion {
+  margin-top: .5rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #34d399;
+  position: relative; z-index: 2;
+}
+
+/* Progress bar */
+.progress {
+  position: absolute;
+  top: 0; left: 0;
+  height: 4px; width: 100%;
+  background: rgba(255,255,255,.05);
+  z-index: 50;
+}
+.progress-fill {
+  height: 100%;
+  transition: width .3s, background .3s;
+}
+
+/* Confetti */
+.confetti { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.confetti span {
+  position: absolute;
+  top: -10px;
+  width: 8px; height: 14px;
+  animation: fall 4s linear infinite;
+}
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+/* Counter + controls (fixed to viewport, NOT scaled with the 16:9 stage) */
+.counter {
+  position: fixed; bottom: 14px; left: 18px;
+  color: rgba(241,245,249,.55);
+  font-size: .78rem;
+  z-index: 100;
+}
+.controls { position: fixed; bottom: 14px; right: 18px; display: flex; gap: 6px; z-index: 100; }
+.ctrl {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #f1f5f9;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: .78rem;
+  font-family: inherit;
+  transition: all .2s;
+}
+.ctrl:hover { background: rgba(251,191,36,.15); border-color: rgba(251,191,36,.4); }
+.ctrl:disabled { opacity: .3; cursor: not-allowed; }
+
+/* Notes drawer */
+.notes-toggle {
+  position: fixed; top: 14px; right: 18px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #f1f5f9;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .72rem;
+  font-family: inherit;
+  z-index: 100;
+}
+.notes-toggle:hover { background: rgba(251,191,36,.15); }
+.notes-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(2,6,23,.95);
+  border-top: 2px solid rgba(251,191,36,.3);
+  padding: .85rem 1.6rem;
+  transform: translateY(100%);
+  transition: transform .3s;
+  z-index: 90;
+  backdrop-filter: blur(20px);
+  max-height: 30vh;
+  overflow-y: auto;
+}
+.notes-panel.open { transform: translateY(0); }
+.notes-panel .lbl { color: #fbbf24; font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; font-weight: 700; margin-bottom: .3rem; }
+.notes-panel .body { font-size: .88rem; line-height: 1.5; color: #e2e8f0; }
+
+/* Print mode */
+@media print {
+  html, body { height: auto; overflow: visible; }
+  #stage { width: 100%; height: auto; }
+  .slide { display: flex !important; position: relative; page-break-after: always; height: 100vh; }
+  .controls, .counter, .notes-toggle, .notes-panel, .progress { display: none; }
+  .reveal-block, .reveal-text { max-height: none !important; opacity: 1 !important; padding: .45rem .75rem !important; }
+  .reveal-btn { display: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="progress"><div class="progress-fill" id="progress"></div></div>
+<div id="stage"></div>
+
+<div class="counter" id="counter">— · 1 / 1</div>
+<div class="controls">
+  <button class="ctrl" id="prevBtn">← Prev</button>
+  <button class="ctrl" id="nextBtn">Next →</button>
+  <button class="ctrl" id="fsBtn">⛶ FS</button>
+</div>
+<button class="notes-toggle" id="notesBtn">📝 Notes (T)</button>
+<div class="notes-panel" id="notesPanel">
+  <div class="lbl">Teacher Notes</div>
+  <div class="body" id="notesBody"></div>
+</div>
+
+<script id="ss-data" type="application/json">__DATA_JSON__</script>
+<script>
+(() => {
+  const DATA = JSON.parse(document.getElementById('ss-data').textContent || '{}');
+  const SLIDES = Array.isArray(DATA.slides) ? DATA.slides : [];
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // Map slide.section text → academic section class (controls gradient + accent color)
+  const SECTION_MAP = {
+    title: 'title',
+    icebreaker: 'ice', rapport: 'ice', 'ice-breaker': 'ice', welcome: 'ice',
+    'warm-up': 'warm', warmup: 'warm', 'warm up': 'warm',
+    objectives: 'obj', objective: 'obj', 'learning objective': 'obj',
+    definition: 'def', define: 'def',
+    explanation: 'exp', examples: 'exp', explanation_examples: 'exp',
+    activity: 'act', 'i do': 'act', 'we do': 'act', 'you do': 'act', 'i do / we do / you do': 'act',
+    'skill task': 'skill', skill: 'skill',
+    assessment: 'assess', 'quick assessment': 'assess', quiz: 'assess',
+    'key takeaways': 'take', takeaways: 'take', recap: 'take',
+    closure: 'closure', hots: 'closure', 'closure with hots': 'closure', goodbye: 'closure',
+  };
+
+  // Map slide.type → activity badge tone (only when section is "activity")
+  const TYPE_TO_BADGE = {
+    'i-do':   { cls: 'idoo',  label: '🧑‍🏫 I DO — WATCH ME!' },
+  };
+
+  function sectionKey(s) {
+    const raw = (s.section || '').toLowerCase().trim();
+    if (SECTION_MAP[raw]) return SECTION_MAP[raw];
+    // try keyword match
+    for (const [k, v] of Object.entries(SECTION_MAP)) {
+      if (raw.includes(k)) return v;
+    }
+    // fallback by type
+    const t = s.type;
+    if (t === 'title') return 'title';
+    if (t === 'objectives') return 'obj';
+    if (t === 'definition') return 'def';
+    if (t === 'compare' || t === 'examples' || t === 'fact' || t === 'mnemonic') return 'exp';
+    if (t === 'i-do' || t === 'drag-sort' || t === 'fill-blank' || t === 'story') return 'act';
+    if (t === 'quiz') return 'assess';
+    if (t === 'takeaway') return 'take';
+    if (t === 'hots' || t === 'closure') return 'closure';
+    return 'exp';
+  }
+
+  const SECTION_LABEL = {
+    title: '', ice: '🔥 ICEBREAKER', warm: '🌅 WARM-UP', obj: '🎯 LEARNING OBJECTIVES',
+    def: '📖 DEFINITION', exp: '💡 EXPLANATION', act: '🎯 ACTIVITY',
+    skill: '🎯 SKILL TASK', assess: '📋 QUICK ASSESSMENT',
+    take: '🌟 KEY TAKEAWAYS', closure: '✨ CLOSURE',
+  };
+  const SECTION_PILL = {
+    title: 'TITLE', ice: 'ICE', warm: 'WARM', obj: 'OBJ',
+    def: 'DEF', exp: 'EXP', act: 'ACT', skill: 'SKILL',
+    assess: 'ASSESS', take: 'TAKE', closure: 'CLOSURE',
+  };
+  const SECTION_COLORS = {
+    title: '#a78bfa', ice: '#fb7185', warm: '#fbbf24', obj: '#5eead4',
+    def: '#a78bfa', exp: '#38bdf8', act: '#34d399', skill: '#e879f9',
+    assess: '#fb923c', take: '#22d3ee', closure: '#f472b6',
+  };
+
+  // Renderers — return HTML for the inside of each .slide
+  const R = {
+    title(s, _key) {
+      return `
+        <div class="title-emoji">${esc(s.title?.[0] || '✨')}</div>
+        <h1>${esc(s.title || '')}</h1>
+        ${s.subtitle ? `<p style="font-size:clamp(1rem,1.5vw,1.3rem);color:#cbd5e1;margin-top:.4rem;position:relative;z-index:2">${esc(s.subtitle)}</p>` : ''}
+        ${s.mascot1Says || s.mascot2Says ? `
+          <div class="card" style="margin-top:1rem;text-align:left;font-size:.9rem;line-height:1.6">
+            ${s.mascot1Says ? `<p>💬 ${esc(s.mascot1Says)}</p>` : ''}
+            ${s.mascot2Says ? `<p style="margin-top:.4rem">💬 ${esc(s.mascot2Says)}</p>` : ''}
+          </div>` : ''}`;
+    },
+    section(s) {
+      return `<h2>${esc(s.title || '')}</h2>${s.body ? `<p style="max-width:80%;font-size:1.05rem;color:#cbd5e1">${esc(s.body)}</p>` : ''}`;
+    },
+    body(s) {
+      return `
+        ${s.icon ? `<div class="title-emoji" style="font-size:3.5rem">${esc(s.icon)}</div>` : ''}
+        <h2>${esc(s.title || '')}</h2>
+        <div class="card" style="text-align:left">
+          <p>${esc(s.body || '')}</p>
+        </div>
+        ${s.mascotSays ? `<div class="tip-bar">💬 ${esc(s.mascotSays)}</div>` : ''}`;
+    },
+    objectives(s) {
+      const items = (s.items || []).map(it =>
+        `<div class="checklist-item" onclick="window.__toggleCheck(this)">
+          <div class="box"></div><span>${esc(it.text)}</span>
+        </div>`).join('');
+      return `
+        <h2>${esc(s.title || "Today, you will…")}</h2>
+        ${s.subtitle ? `<p style="margin-bottom:.6rem;color:#cbd5e1">${esc(s.subtitle)}</p>` : ''}
+        <div class="checklist">${items}</div>`;
+    },
+    definition(s) {
+      return `
+        <h2>${esc(s.title || 'Definition')}</h2>
+        <div class="card" style="text-align:left">
+          ${s.icon ? `<div style="font-size:2.6rem;text-align:center;margin-bottom:.3rem">${esc(s.icon)}</div>` : ''}
+          <div class="def-term" style="text-align:center">${esc(s.term)}</div>
+          ${s.formula ? `<div style="text-align:center"><div class="def-formula">${esc(s.formula)}</div></div>` : ''}
+          <p class="def-meaning" style="text-align:center;margin-top:.4rem">${esc(s.meaning)}</p>
+          ${s.example ? `<p class="def-example" style="text-align:center">Example: ${esc(s.example)}</p>` : ''}
+        </div>`;
+    },
+    compare(s) {
+      const a = s.left || {}, b = s.right || {};
+      const pts = (arr) => (arr || []).map(p => `<li style="padding:2px 0;font-size:.78rem">• ${esc(p)}</li>`).join('');
+      return `
+        <h2>${esc(s.title || 'Side by Side')}</h2>
+        <div class="compare-pair">
+          <div class="compare-card tone-a">
+            <div class="head"><span class="ttl">${esc(a.title || '')}</span></div>
+            ${a.formula ? `<p style="font-size:.78rem;margin-bottom:.2rem;opacity:.85"><b>${esc(a.formula)}</b></p>` : ''}
+            ${a.example ? `<p class="ex">${esc(a.example)}</p>` : ''}
+            ${a.points ? `<ul style="list-style:none;margin-top:.3rem">${pts(a.points)}</ul>` : ''}
+          </div>
+          <div class="compare-card tone-b">
+            <div class="head"><span class="ttl">${esc(b.title || '')}</span></div>
+            ${b.formula ? `<p style="font-size:.78rem;margin-bottom:.2rem;opacity:.85"><b>${esc(b.formula)}</b></p>` : ''}
+            ${b.example ? `<p class="ex">${esc(b.example)}</p>` : ''}
+            ${b.points ? `<ul style="list-style:none;margin-top:.3rem">${pts(b.points)}</ul>` : ''}
+          </div>
+        </div>`;
+    },
+    examples(s) {
+      const items = (s.items || []);
+      const cols = items.length > 4 ? 'cols3' : '';
+      const cards = items.map(it =>
+        `<div class="example-card">
+          <span class="example-icon">${esc(it.icon || '✨')}</span>
+          <span class="example-text">${esc(it.text)}</span>
+        </div>`).join('');
+      return `
+        <h2>${esc(s.title || 'Examples')}</h2>
+        ${s.body ? `<p style="color:#cbd5e1;margin-bottom:.5rem">${esc(s.body)}</p>` : ''}
+        <div class="examples-grid ${cols}">${cards}</div>`;
+    },
+    fact(s) {
+      return `
+        <h2>${esc(s.title || 'Did You Know?')}</h2>
+        <div class="fact-card">
+          <div class="label">🌟 Did You Know?</div>
+          <p class="body">${esc(s.body || '')}</p>
+          ${s.quote ? `<div class="quote">"${esc(s.quote)}"${s.source ? `<span class="source">— ${esc(s.source)}</span>` : ''}</div>` : ''}
+        </div>`;
+    },
+    mnemonic(s) {
+      return `
+        <h2>${esc(s.title || 'Memory Trick')}</h2>
+        <div class="trick-card">
+          <div class="label">🪄 Memory Trick</div>
+          <p class="body">${esc(s.body)}</p>
+        </div>`;
+    },
+    'i-do'(s) {
+      const steps = (s.thinking || []).map((t, i) =>
+        `<li><b style="color:#34d399">Step ${i+1}:</b> ${esc(t)}</li>`).join('');
+      return `
+        <div class="activity-badge idoo">🧑‍🏫 I DO — WATCH ME!</div>
+        <h2>${esc(s.title || 'Watch Me!')}</h2>
+        <div class="thinking-sentence">${esc(s.sentence)}</div>
+        <ul class="thinking-list">${steps}</ul>
+        <p class="thinking-conclusion">→ ${esc(s.conclusion)}</p>`;
+    },
+    quiz(s) {
+      const opts = (s.options || []).map((opt, i) =>
+        `<div class="q-option" data-i="${i}" data-correct="${i === s.correctIndex ? '1' : ''}">${esc(String.fromCharCode(65+i))}. ${esc(opt)}</div>`).join('');
+      return `
+        ${s.label ? `<div class="activity-badge wedo">${esc(s.label)}</div>` : ''}
+        <h2>${esc(s.title || s.question || 'Quick Check')}</h2>
+        ${s.title && s.question ? `<p style="margin-bottom:.4rem;font-size:1rem">${esc(s.question)}</p>` : ''}
+        <div class="q-options" data-q>${opts}</div>
+        <p class="q-feedback"></p>
+        ${s.explanation ? `<button class="reveal-btn" data-rb>💡 See why</button><p class="reveal-text">${esc(s.explanation)}</p>` : ''}`;
+    },
+    'fill-blank'(s) {
+      const pills = (s.options || []).map((o, i) =>
+        `<div class="word-pill" data-word="${esc(o)}" data-correct="${i === s.correctIndex ? '1' : ''}">${esc(o)}</div>`).join('');
+      return `
+        <h2>${esc(s.title || 'Fill the Blank')}</h2>
+        <p class="fb-sentence">${esc(s.before || '')} <span class="fb-slot" data-blank>___</span> ${esc(s.after || '')}</p>
+        <div class="word-pills">${pills}</div>
+        <p class="q-feedback"></p>
+        ${s.explanation ? `<button class="reveal-btn" data-rb>💡 Why?</button><p class="reveal-text">${esc(s.explanation)}</p>` : ''}`;
+    },
+    'drag-sort'(s) {
+      const bank = (s.items || []).map((it, i) =>
+        `<div class="drag-card" data-type="${esc(it.type)}" data-i="${i}">${esc(it.text)}</div>`).join('');
+      const z = s.zones || [];
+      return `
+        <h2>${esc(s.title || 'Sort Them')}</h2>
+        ${s.body ? `<p style="color:#cbd5e1;margin-bottom:.4rem;font-size:.88rem">${esc(s.body)}</p>` : ''}
+        <p style="color:#fbbf24;font-size:.78rem;margin-bottom:.4rem;font-weight:600">↓ Tap a card to select, then tap a zone to place ↓</p>
+        <div class="drag-bank" id="bank">${bank}</div>
+        <div class="dropzone-grid">
+          <div class="drop-zone zone-a" data-accept="a"><div class="lbl">${esc(z[0]?.label || 'Group A')}</div></div>
+          <div class="drop-zone zone-b" data-accept="b"><div class="lbl">${esc(z[1]?.label || 'Group B')}</div></div>
+        </div>`;
+    },
+    story(s) {
+      const text = (s.parts || []).map(p => {
+        if (p.tag === 'a') return `<span class="kw-a">${esc(p.text)}</span>`;
+        if (p.tag === 'b') return `<span class="kw-b">${esc(p.text)}</span>`;
+        return esc(p.text);
+      }).join('');
+      return `
+        <h2>${esc(s.title || 'Story Time')}</h2>
+        <div class="story-card">${text}</div>
+        ${s.legend ? `<p style="color:#cbd5e1;font-size:.78rem;margin-top:.5rem">${esc(s.legend)}</p>` : ''}`;
+    },
+    takeaway(s) {
+      const items = (s.points || []).map(p =>
+        `<div class="checklist-item" style="background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.3)">
+          <span style="font-size:1.2rem">${esc(p.icon || '✓')}</span>
+          <span>${esc(p.text || p)}</span>
+        </div>`).join('');
+      return `
+        <h2>${esc(s.title || 'Key Takeaways')}</h2>
+        <div class="checklist">${items}</div>`;
+    },
+    hots(s) {
+      return `
+        ${s.icon ? `<div class="title-emoji" style="font-size:3.5rem">${esc(s.icon)}</div>` : ''}
+        <h2>${esc(s.title || 'What if…?')}</h2>
+        <div class="card" style="text-align:left;background:rgba(244,114,182,.06);border-color:rgba(244,114,182,.3)">
+          <p style="font-size:1rem;line-height:1.6">${esc(s.question)}</p>
+        </div>
+        ${s.mascotSays ? `<div class="tip-bar">💭 ${esc(s.mascotSays)}</div>` : ''}`;
+    },
+    closure(s) {
+      const stars = Math.max(1, Math.min(5, Number(s.stars) || 3));
+      return `
+        <div class="confetti">
+          ${Array(10).fill(0).map((_, i) => `<span style="left:${5 + i * 9}%;animation-delay:${(i * .15).toFixed(2)}s;background:${['#fbbf24','#34d399','#fb7185','#a78bfa','#22d3ee','#f472b6'][i % 6]}"></span>`).join('')}
+        </div>
+        <h1>${esc(s.title || 'AMAZING!')}</h1>
+        <div style="font-size:clamp(2.4rem,4vw,3.6rem);letter-spacing:14px;margin:.4rem 0">${'⭐'.repeat(stars)}</div>
+        ${s.body ? `<p style="font-size:1.1rem;color:#cbd5e1;margin:.4rem 0">${esc(s.body)}</p>` : ''}
+        ${(s.mascot1Says || s.mascot2Says) ? `
+          <div class="card" style="margin-top:.4rem;text-align:left;font-size:.9rem;line-height:1.6">
+            ${s.mascot1Says ? `<p>💬 ${esc(s.mascot1Says)}</p>` : ''}
+            ${s.mascot2Says ? `<p style="margin-top:.3rem">💬 ${esc(s.mascot2Says)}</p>` : ''}
+          </div>` : ''}`;
+    },
+  };
+
+  // Subject motifs — pick 4 SVGs from the merged decorations and float them in each slide
+  const motifs = Array.isArray(DATA.theme?.decorations) ? DATA.theme.decorations : [];
+  const motifAt = (i) => motifs[i % Math.max(1, motifs.length)] || '';
+  const motifHtml = (key) => {
+    if (!motifs.length) return '';
+    // Tint to section accent color
+    const color = SECTION_COLORS[key] || '#fbbf24';
+    return `
+      <div class="subject-motif m1" style="color:${color}">${motifAt(0)}</div>
+      <div class="subject-motif m2" style="color:${color}">${motifAt(1)}</div>
+      <div class="subject-motif m3" style="color:${color}">${motifAt(2)}</div>
+      <div class="subject-motif m4" style="color:${color}">${motifAt(3)}</div>`;
+  };
+
+  // Build all slides
+  const stage = document.getElementById('stage');
+  stage.innerHTML = SLIDES.map((s, i) => {
+    const key = sectionKey(s);
+    const renderer = R[s.type] || R.body;
+    const inner = renderer(s, key);
+    return `
+      <section class="slide s-${key}${i === 0 ? ' active' : ''}" data-i="${i}" data-section-key="${key}">
+        <div class="blob tr"></div>
+        <div class="blob bl"></div>
+        ${motifHtml(key)}
+        <div class="section-pill">${esc(SECTION_PILL[key] || '')}</div>
+        ${key !== 'title' ? `<div class="section-label">${SECTION_LABEL[key] || ''}</div>` : ''}
+        ${inner}
+        <div class="brand-chip"><img src="${esc(DATA.logoUrl || '')}" alt="" /><span>Super Sheldon</span></div>
+      </section>`;
+  }).join('');
+
+  const slideEls = Array.from(stage.querySelectorAll('.slide'));
+
+  // ── Wire each slide's interactions ──
+  slideEls.forEach((el, idx) => {
+    // Quiz
+    el.querySelectorAll('[data-q] .q-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (opt.dataset.answered) return;
+        const correct = opt.dataset.correct === '1';
+        const fb = el.querySelector('.q-feedback');
+        // Lock all
+        el.querySelectorAll('.q-option').forEach(o => o.dataset.answered = '1');
+        // Mark chosen
+        opt.classList.add(correct ? 'correct' : 'wrong');
+        // Always highlight the correct answer (so user learns)
+        const right = el.querySelector('.q-option[data-correct="1"]');
+        if (right) right.classList.add('correct');
+        if (fb) {
+          fb.textContent = correct
+            ? '✓ Correct! Nice thinking.'
+            : '✗ Not quite — the green-highlighted answer is correct.';
+          fb.className = 'q-feedback ' + (correct ? 'correct' : 'wrong');
+        }
+      });
+    });
+
+    // Reveal buttons
+    el.querySelectorAll('.reveal-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const block = btn.nextElementSibling;
+        if (block && (block.classList.contains('reveal-block') || block.classList.contains('reveal-text'))) {
+          block.classList.add('revealed');
+        }
+        btn.classList.add('revealed');
+      });
+    });
+
+    // Fill-blank
+    el.querySelectorAll('.word-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        if (pill.classList.contains('used')) return;
+        const correct = pill.dataset.correct === '1';
+        const slot = el.querySelector('[data-blank]');
+        const fb = el.querySelector('.q-feedback');
+        if (correct) {
+          if (slot) { slot.textContent = pill.dataset.word; slot.classList.add('filled'); }
+          el.querySelectorAll('.word-pill').forEach(p => p.classList.add('used'));
+          if (fb) { fb.textContent = '✓ Correct!'; fb.className = 'q-feedback correct'; }
+        } else {
+          pill.style.background = 'rgba(251,113,133,.25)';
+          setTimeout(() => pill.style.background = '', 500);
+          if (fb) { fb.textContent = '✗ Try again — pick another word.'; fb.className = 'q-feedback wrong'; }
+        }
+      });
+    });
+
+    // Drag-sort (tap-to-place — works on mobile and desktop)
+    let selectedCard = null;
+    el.querySelectorAll('.drag-card').forEach(card => {
+      card.addEventListener('click', () => {
+        if (card.classList.contains('placed-a') || card.classList.contains('placed-b')) return;
+        el.querySelectorAll('.drag-card.selected').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedCard = card;
+      });
+    });
+    el.querySelectorAll('.drop-zone').forEach(zone => {
+      zone.addEventListener('click', () => {
+        if (!selectedCard) return;
+        const accept = zone.dataset.accept;
+        const type = selectedCard.dataset.type;
+        if (accept === type) {
+          zone.appendChild(selectedCard);
+          selectedCard.classList.remove('selected');
+          selectedCard.classList.add('placed-' + accept);
+          selectedCard = null;
+        } else {
+          zone.style.borderColor = '#fb7185';
+          setTimeout(() => zone.style.borderColor = '', 500);
+        }
+      });
+    });
+  });
+
+  // ── Navigation ──
+  const $counter = document.getElementById('counter');
+  const $progress = document.getElementById('progress');
+  const $prev = document.getElementById('prevBtn');
+  const $next = document.getElementById('nextBtn');
+  const $notes = document.getElementById('notesPanel');
+  const $notesBody = document.getElementById('notesBody');
+
+  function show(i) {
+    const n = Math.max(0, Math.min(slideEls.length - 1, i));
+    slideEls.forEach((s, idx) => s.classList.toggle('active', idx === n));
+    const slide = slideEls[n];
+    const key = slide.dataset.sectionKey;
+    $progress.style.width = `${((n + 1) / slideEls.length) * 100}%`;
+    $progress.style.background = SECTION_COLORS[key] || '#fbbf24';
+    $counter.textContent = `${SECTION_PILL[key] || ''} · ${n + 1} / ${slideEls.length}`;
+    $notesBody.textContent = SLIDES[n]?.notes || 'No teacher notes for this slide.';
+    $prev.disabled = n === 0;
+    $next.disabled = n === slideEls.length - 1;
+    window.__currentIdx = n;
+  }
+  function next() { show((window.__currentIdx || 0) + 1); }
+  function prev() { show((window.__currentIdx || 0) - 1); }
+  $prev.addEventListener('click', prev);
+  $next.addEventListener('click', next);
+  document.getElementById('notesBtn').addEventListener('click', () => $notes.classList.toggle('open'));
+  document.getElementById('fsBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft') prev();
+    else if (e.key === 't' || e.key === 'T') $notes.classList.toggle('open');
+    else if (e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen?.();
+    else if (e.key === 'p' || e.key === 'P') window.print();
+  });
+
+  // Tap on slide background advances (but not on buttons/options)
+  stage.addEventListener('click', e => {
+    if (e.target.closest('button, .q-option, .word-pill, .drag-card, .drop-zone, .checklist-item, .reveal-btn')) return;
+    if (e.target.tagName === 'A' || e.target.tagName === 'INPUT') return;
+    next();
+  });
+
+  window.__toggleCheck = (el) => el.classList.toggle('checked');
+
+  show(0);
+})();
+</script>
+</body>
+</html>

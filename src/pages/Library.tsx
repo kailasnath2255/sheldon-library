@@ -9,6 +9,11 @@ import WorksheetRenderer from "@/components/renderers/WorksheetRenderer";
 import LessonPlanRenderer from "@/components/renderers/LessonPlanRenderer";
 import PresentationRenderer from "@/components/renderers/PresentationRenderer";
 import GameRenderer from "@/components/renderers/GameRenderer";
+import TemplatedPresentationRenderer from "@/components/renderers/TemplatedPresentationRenderer";
+import TemplatedGameRenderer from "@/components/renderers/TemplatedGameRenderer";
+import TemplatedWorksheetRenderer from "@/components/renderers/TemplatedWorksheetRenderer";
+import TemplatedLessonPlanRenderer from "@/components/renderers/TemplatedLessonPlanRenderer";
+import TemplatedQuizRenderer from "@/components/renderers/TemplatedQuizRenderer";
 import HTMLContentRenderer from "@/components/renderers/HTMLContentRenderer";
 import MarkdownContentRenderer from "@/components/renderers/MarkdownContentRenderer";
 import { useStore } from "@/store/useStore";
@@ -425,6 +430,16 @@ const RenderedItem = ({
     }
     if (p.format === "markdown" && typeof p.markdown === "string") {
       return <MarkdownContentRenderer markdown={p.markdown} title={item.title} />;
+    }
+    // Templated content (template-v1) — dispatch to iframe renderers
+    if (p.format === "template-v1" && typeof p.template === "string") {
+      if (p.template === "presentation-classic" || p.template === "presentation-academic") {
+        return <TemplatedPresentationRenderer data={p} />;
+      }
+      if (p.template === "game-arcade") return <TemplatedGameRenderer data={p} />;
+      if (p.template === "worksheet-print") return <TemplatedWorksheetRenderer data={p} />;
+      if (p.template === "lessonplan-timeline") return <TemplatedLessonPlanRenderer data={p} />;
+      if (p.template === "quiz-live") return <TemplatedQuizRenderer data={p} />;
     }
   }
 
