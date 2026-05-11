@@ -342,10 +342,11 @@ export default function Generate() {
       } catch (e) {
         toast.error("Generated, but couldn't save to library.");
       }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Generation failed.";
-      setError(msg);
-      toast.error("Something broke — try again.");
+    } catch (_e) {
+      // Generation failed across all backend fallbacks. The full error
+      // is captured in the event log (see /admin) — the teacher sees
+      // only a friendly generic message with no scary details.
+      setError("Sheldon couldn't finish that one. Tap Retry, or check /admin if it keeps happening.");
     } finally {
       setLoading(false);
     }
@@ -633,8 +634,7 @@ export default function Generate() {
           <div className="bg-white dark:bg-deep-surface rounded-2xl shadow-soft border border-navy/5 min-h-[600px] p-5 lg:p-6">
             {error ? (
               <ErrorState
-                message="Something broke — try again."
-                detail={error}
+                message={error}
                 onRetry={handleGenerate}
               />
             ) : loading ? (

@@ -29,6 +29,7 @@ import type {
   SyncAction,
   WorksheetResponse,
 } from "./types";
+import { logEvent } from "./event-log";
 
 const baseUrl = (import.meta.env.VITE_N8N_BASE_URL ?? "").trim();
 const sheldonKey = (import.meta.env.VITE_SHELDON_KEY ?? "").trim();
@@ -48,6 +49,11 @@ async function callWebhook<T>(
     return await options.mockResolver();
   }
 
+  const started = performance.now();
+  const payloadPreview = (() => {
+    try { return JSON.stringify(body).slice(0, 200); } catch { return undefined; }
+  })();
+
   const controller = new AbortController();
   const timeoutMs = options.timeoutMs ?? 30_000;
   const timeout = setTimeout(
@@ -55,6 +61,7 @@ async function callWebhook<T>(
     timeoutMs
   );
 
+  let httpStatus: number | undefined;
   try {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (sheldonKey) headers["x-sheldon-key"] = sheldonKey;
@@ -64,6 +71,7 @@ async function callWebhook<T>(
       body: JSON.stringify(body),
       signal: controller.signal,
     });
+    httpStatus = res.status;
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       throw new Error(`${path} failed (${res.status}): ${text.slice(0, 200)}`);
@@ -83,7 +91,27 @@ async function callWebhook<T>(
     if (parsed && typeof parsed === "object" && typeof parsed.error === "string" && !parsed.questions && !parsed.slides && !parsed.sections && !parsed.timeline && !parsed.data) {
       throw new Error(parsed.error);
     }
+    logEvent({
+      path,
+      status: "success",
+      durationMs: Math.round(performance.now() - started),
+      httpStatus,
+      provider: parsed?._provider,
+      model: parsed?._model,
+      payloadPreview,
+      responsePreview: text.slice(0, 300),
+    });
     return parsed as T;
+  } catch (err) {
+    logEvent({
+      path,
+      status: "error",
+      durationMs: Math.round(performance.now() - started),
+      httpStatus,
+      error: err instanceof Error ? err.message : String(err),
+      payloadPreview,
+    });
+    throw err;
   } finally {
     clearTimeout(timeout);
   }

@@ -11,6 +11,7 @@ import Students from "@/pages/Students";
 import Generate from "@/pages/Generate";
 import Library from "@/pages/Library";
 import Progress from "@/pages/Progress";
+import Admin from "@/pages/Admin";
 
 export default function App() {
   const { hydrate, isHydrated } = useStore();
@@ -68,6 +69,7 @@ export default function App() {
                 <Route path="/generate" element={<Generate />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/progress" element={<Progress />} />
+                <Route path="/admin" element={<Admin />} />
               </Routes>
             </motion.div>
           </AnimatePresence>

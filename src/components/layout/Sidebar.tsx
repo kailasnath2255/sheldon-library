@@ -5,6 +5,7 @@ import {
   Wand2,
   BookOpen,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -14,6 +15,7 @@ const NAV = [
   { to: "/generate", label: "Generate", icon: Wand2 },
   { to: "/library", label: "Library", icon: BookOpen },
   { to: "/progress", label: "Progress", icon: TrendingUp },
+  { to: "/admin", label: "Admin", icon: Activity },
 ];
 
 export default function Sidebar() {
